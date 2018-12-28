@@ -1,0 +1,1451 @@
+<!DOCTYPE html>
+
+
+
+  
+
+
+<html class="theme-next muse use-motion" lang="zh-Hans">
+<head><meta name="generator" content="Hexo 3.8.0">
+  <meta charset="UTF-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+<meta name="theme-color" content="#fff">
+
+
+
+  
+  
+    
+    
+  <script src="/lib/pace/pace.min.js?v=1.0.2"></script>
+  <link href="/lib/pace/pace-theme-minimal.min.css?v=1.0.2" rel="stylesheet">
+
+
+
+
+
+
+
+<meta http-equiv="Cache-Control" content="no-transform">
+<meta http-equiv="Cache-Control" content="no-siteapp">
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+  <link href="/lib/fancybox/source/jquery.fancybox.css?v=2.1.5" rel="stylesheet" type="text/css">
+
+
+
+
+
+
+
+<link href="/lib/font-awesome/css/font-awesome.min.css?v=4.6.2" rel="stylesheet" type="text/css">
+
+<link href="/css/main.css?v=5.1.4" rel="stylesheet" type="text/css">
+
+
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png?v=5.1.4">
+
+
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png?v=5.1.4">
+
+
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png?v=5.1.4">
+
+
+  <link rel="mask-icon" href="/images/logo.svg?v=5.1.4" color="#fff">
+
+
+
+
+
+  <meta name="keywords" content="STL,">
+
+
+
+
+
+  <link rel="alternate" href="/atom.xml" title="Ersheng" type="application/atom+xml">
+
+
+
+
+
+
+<meta name="description" content="1.SGI 空间配置与释放 对象构造前的空间配置与对象析构后的空间释放，由&amp;lt;stl_alloc.h&amp;gt;负责，SGI主要考虑以下四个步骤：1.向system heap要求空间2.考虑多线程状态3.考虑内存不足时的应对措施4.考虑过多“小型区块”可能造成的内存碎片问题">
+<meta name="keywords" content="STL">
+<meta property="og:type" content="article">
+<meta property="og:title" content="深度解析--SGI  STL 空间配置与释放">
+<meta property="og:url" content="http://yoursite.com/2018/11/13/深度解析-SGI-STL-空间配置与释放/index.html">
+<meta property="og:site_name" content="Ersheng">
+<meta property="og:description" content="1.SGI 空间配置与释放 对象构造前的空间配置与对象析构后的空间释放，由&amp;lt;stl_alloc.h&amp;gt;负责，SGI主要考虑以下四个步骤：1.向system heap要求空间2.考虑多线程状态3.考虑内存不足时的应对措施4.考虑过多“小型区块”可能造成的内存碎片问题">
+<meta property="og:locale" content="zh-Hans">
+<meta property="og:image" content="https://img-blog.csdnimg.cn/20181112123857425.jpg?x-oss-process=image/watermark,type_ZmFuZ3poZW5naGVpdGk,shadow_10,text_aHR0cHM6Ly9ibG9nLmNzZG4ubmV0L3FxXzM4NzkwNzE2,size_16,color_FFFFFF,t_70">
+<meta property="og:image" content="https://img-blog.csdnimg.cn/20181112233013401.jpg?x-oss-process=image/watermark,type_ZmFuZ3poZW5naGVpdGk,shadow_10,text_aHR0cHM6Ly9ibG9nLmNzZG4ubmV0L3FxXzM4NzkwNzE2,size_16,color_FFFFFF,t_70">
+<meta property="og:image" content="https://img-blog.csdnimg.cn/20181112233403282.jpg?x-oss-process=image/watermark,type_ZmFuZ3poZW5naGVpdGk,shadow_10,text_aHR0cHM6Ly9ibG9nLmNzZG4ubmV0L3FxXzM4NzkwNzE2,size_16,color_FFFFFF,t_70">
+<meta property="og:image" content="https://i.imgur.com/qO3eNNa.jpg">
+<meta property="og:updated_time" content="2018-11-13T09:12:22.813Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="深度解析--SGI  STL 空间配置与释放">
+<meta name="twitter:description" content="1.SGI 空间配置与释放 对象构造前的空间配置与对象析构后的空间释放，由&amp;lt;stl_alloc.h&amp;gt;负责，SGI主要考虑以下四个步骤：1.向system heap要求空间2.考虑多线程状态3.考虑内存不足时的应对措施4.考虑过多“小型区块”可能造成的内存碎片问题">
+<meta name="twitter:image" content="https://img-blog.csdnimg.cn/20181112123857425.jpg?x-oss-process=image/watermark,type_ZmFuZ3poZW5naGVpdGk,shadow_10,text_aHR0cHM6Ly9ibG9nLmNzZG4ubmV0L3FxXzM4NzkwNzE2,size_16,color_FFFFFF,t_70">
+
+
+
+<script type="text/javascript" id="hexo.configurations">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    root: '/',
+    scheme: 'Muse',
+    version: '5.1.4',
+    sidebar: {"position":"left","display":"hide","offset":12,"b2t":true,"scrollpercent":true,"onmobile":true},
+    fancybox: true,
+    tabs: true,
+    motion: {"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},
+    duoshuo: {
+      userId: '0',
+      author: '博主'
+    },
+    algolia: {
+      applicationID: '',
+      apiKey: '',
+      indexName: '',
+      hits: {"per_page":10},
+      labels: {"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}
+    }
+  };
+</script>
+
+
+
+  <link rel="canonical" href="http://yoursite.com/2018/11/13/深度解析-SGI-STL-空间配置与释放/">
+
+
+
+
+
+  <title>深度解析--SGI  STL 空间配置与释放 | Ersheng</title>
+  
+
+
+
+
+
+
+
+
+  
+
+</head>
+
+<body itemscope="" itemtype="http://schema.org/WebPage" lang="zh-Hans">
+
+  
+  
+    
+  
+
+  <div class="container sidebar-position-left page-post-detail">
+    <div class="headband"></div>
+
+	<a href="https://github.com/ershengaaa" class="github-corner" aria-label="View source on GitHub"><svg width="80" height="80" viewbox="0 0 250 250" style="fill:#151513; color:#fff; position: absolute; top: 0; border: 0; right: 0;" aria-hidden="true"><path d="M0,0 L115,115 L130,115 L142,142 L250,250 L250,0 Z"/><path d="M128.3,109.0 C113.8,99.7 119.0,89.6 119.0,89.6 C122.0,82.7 120.5,78.6 120.5,78.6 C119.2,72.0 123.4,76.3 123.4,76.3 C127.3,80.9 125.5,87.3 125.5,87.3 C122.9,97.6 130.6,101.9 134.4,103.2" fill="currentColor" style="transform-origin: 130px 106px;" class="octo-arm"/><path d="M115.0,115.0 C114.9,115.1 118.7,116.5 119.8,115.4 L133.7,101.6 C136.9,99.2 139.9,98.4 142.2,98.6 C133.8,88.0 127.5,74.4 143.8,58.0 C148.5,53.4 154.0,51.2 159.7,51.0 C160.3,49.4 163.2,43.6 171.4,40.1 C171.4,40.1 176.1,42.5 178.8,56.2 C183.1,58.6 187.2,61.8 190.9,65.4 C194.5,69.0 197.7,73.2 200.1,77.6 C213.8,80.2 216.3,84.9 216.3,84.9 C212.7,93.1 206.9,96.0 205.4,96.6 C205.1,102.4 203.0,107.8 198.3,112.5 C181.9,128.9 168.3,122.5 157.7,114.1 C157.9,116.9 156.7,120.9 152.7,124.9 L141.0,136.5 C139.8,137.7 141.6,141.9 141.8,141.8 Z" fill="currentColor" class="octo-body"/></svg></a><style>.github-corner:hover .octo-arm{animation:octocat-wave 560ms ease-in-out}@keyframes octocat-wave{0%,100%{transform:rotate(0)}20%,60%{transform:rotate(-25deg)}40%,80%{transform:rotate(10deg)}}@media (max-width:500px){.github-corner:hover .octo-arm{animation:none}.github-corner .octo-arm{animation:octocat-wave 560ms ease-in-out}}</style>
+    <header id="header" class="header" itemscope="" itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-wrapper">
+  <div class="site-meta ">
+    
+
+    <div class="custom-logo-site-title">
+      <a href="/" class="brand" rel="start">
+        <span class="logo-line-before"><i></i></span>
+        <span class="site-title">Ersheng</span>
+        <span class="logo-line-after"><i></i></span>
+      </a>
+    </div>
+      
+        <p class="site-subtitle">No accumulation, no miles</p>
+      
+  </div>
+
+  <div class="site-nav-toggle">
+    <button>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+    </button>
+  </div>
+</div>
+
+<nav class="site-nav">
+  
+
+  
+    <ul id="menu" class="menu">
+      
+        
+        <li class="menu-item menu-item-home">
+          <a href="/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-home"></i> <br>
+            
+            首页
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-about">
+          <a href="/about/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-user"></i> <br>
+            
+            关于
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-tags">
+          <a href="/tags/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-tags"></i> <br>
+            
+            标签
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-categories">
+          <a href="/categories/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-th"></i> <br>
+            
+            分类
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-archives">
+          <a href="/archives/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-archive"></i> <br>
+            
+            归档
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-top">
+          <a href="/top/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-signal"></i> <br>
+            
+            TopX
+          </a>
+        </li>
+      
+
+      
+        <li class="menu-item menu-item-search">
+          
+            <a href="javascript:;" class="popup-trigger">
+          
+            
+              <i class="menu-item-icon fa fa-search fa-fw"></i> <br>
+            
+            搜索
+          </a>
+        </li>
+      
+    </ul>
+  
+
+  
+    <div class="site-search">
+      
+  <div class="popup search-popup local-search-popup">
+  <div class="local-search-header clearfix">
+    <span class="search-icon">
+      <i class="fa fa-search"></i>
+    </span>
+    <span class="popup-btn-close">
+      <i class="fa fa-times-circle"></i>
+    </span>
+    <div class="local-search-input-wrapper">
+      <input autocomplete="off" placeholder="搜索..." spellcheck="false" type="text" id="local-search-input">
+    </div>
+  </div>
+  <div id="local-search-result"></div>
+</div>
+
+
+
+    </div>
+  
+</nav>
+
+
+
+ </div>
+    </header>
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          <div id="content" class="content">
+            
+
+  <div id="posts" class="posts-expand">
+    
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal" itemscope="" itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2018/11/13/深度解析-SGI-STL-空间配置与释放/">
+
+    <span hidden itemprop="author" itemscope="" itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="ersheng">
+      <meta itemprop="description" content="">
+      <meta itemprop="image" content="/images/p.jpg">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope="" itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Ersheng">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">深度解析--SGI  STL 空间配置与释放</h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">发表于</span>
+              
+              <time title="创建于" itemprop="dateCreated datePublished" datetime="2018-11-13T16:59:02+08:00">
+                2018-11-13
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+            <span class="post-category">
+            
+              <span class="post-meta-divider">|</span>
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">分类于</span>
+              
+              
+                <span itemprop="about" itemscope="" itemtype="http://schema.org/Thing">
+                  <a href="/categories/STL/" itemprop="url" rel="index">
+                    <span itemprop="name">STL</span>
+                  </a>
+                </span>
+
+                
+                
+              
+            </span>
+          
+
+          
+            
+              <span class="post-comments-count">
+                <span class="post-meta-divider">|</span>
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-comment-o"></i>
+                </span>
+                <a href="/2018/11/13/深度解析-SGI-STL-空间配置与释放/#comments" itemprop="discussionUrl">
+                  <span class="post-comments-count valine-comment-count" data-xid="/2018/11/13/深度解析-SGI-STL-空间配置与释放/" itemprop="commentCount"></span>
+                </a>
+              </span>
+            
+          
+
+          
+          
+             <span id="/2018/11/13/深度解析-SGI-STL-空间配置与释放/" class="leancloud_visitors" data-flag-title="深度解析--SGI  STL 空间配置与释放">
+               <span class="post-meta-divider">|</span>
+               <span class="post-meta-item-icon">
+                 <i class="fa fa-eye"></i>
+               </span>
+               
+                 <span class="post-meta-item-text">热度&#58;</span>
+               
+                 <span class="leancloud-visitors-count"></span>
+             </span>
+          
+
+          
+
+          
+            <div class="post-wordcount">
+              
+                
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-file-word-o"></i>
+                </span>
+                
+                  <span class="post-meta-item-text">字数统计&#58;</span>
+                
+                <span title="字数统计">
+                  2.8k
+                </span>
+              
+
+              
+                <span class="post-meta-divider">|</span>
+              
+
+              
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-clock-o"></i>
+                </span>
+                
+                  <span class="post-meta-item-text">阅读时长 &asymp;</span>
+                
+                <span title="阅读时长">
+                  12
+                </span>
+              
+            </div>
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        <h1 id="1-SGI-空间配置与释放"><a href="#1-SGI-空间配置与释放" class="headerlink" title="1.SGI 空间配置与释放"></a>1.SGI 空间配置与释放</h1><ul>
+<li>对象构造前的空间配置与对象析构后的空间释放，由&lt;stl_alloc.h&gt;负责，SGI主要考虑以下四个步骤：<br><code>1.向system heap要求空间</code><br><code>2.考虑多线程状态</code><br><code>3.考虑内存不足时的应对措施</code><br><code>4.考虑过多“小型区块”可能造成的内存碎片问题</code></li>
+</ul>
+<a id="more"></a>
+<ul>
+<li>SGI以malloc()和free()完成内存的配置与释放，但考虑到小型区块可能造成的内存破碎问题，SGI设置了双层级配置器：<br><code>1.第一级配置器直接使用malloc()和free()</code><br><code>2.第二级配置器视情况采用不同的策略：</code><blockquote>
+<ul>
+<li>配置区块超过128bytes时，视之为足够大，便采用第一级配置器</li>
+<li>配置区块小于128bytes时，视之为过小，采用<code>memory pool</code>整理方式</li>
+</ul>
+</blockquote>
+</li>
+</ul>
+<h1 id="2-两级配置器"><a href="#2-两级配置器" class="headerlink" title="2. 两级配置器"></a>2. 两级配置器</h1><ul>
+<li><p>SGI封装了一个接口，名为==simple_alloc==（<code>使配置器的接口符合STL规格</code>），无论alloc被定义为第一级亦或第二级配置器，都采用该接口进行空间配置：</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">template</span> &lt;<span class="class"><span class="keyword">class</span> <span class="title">T</span>, <span class="title">class</span> <span class="title">Alloc</span>&gt;</span></span><br><span class="line"><span class="class"><span class="title">class</span> <span class="title">simple_alloc</span> &#123;</span></span><br><span class="line"><span class="keyword">public</span>:</span><br><span class="line">	<span class="function"><span class="keyword">static</span> T *<span class="title">allocate</span><span class="params">(size_ t n)</span>      <span class="comment">//单纯的转调用函数，调用传递给配置器的成员函数</span></span></span><br><span class="line"><span class="function">					</span>&#123;<span class="keyword">return</span> <span class="number">0</span>  == n? <span class="number">0</span> : (T*) Alloc::allocate(n * szieof(T)); &#125;</span><br><span class="line">	<span class="function"><span class="keyword">static</span> T *<span class="title">allocate</span><span class="params">(<span class="keyword">void</span>)</span> </span></span><br><span class="line"><span class="function">	              </span>&#123; <span class="keyword">return</span> (T*) Alloc::allocate(<span class="keyword">sizeof</span> (T)) ; &#125;</span><br><span class="line">   <span class="function"><span class="keyword">static</span> <span class="keyword">void</span> <span class="title">deallocate</span><span class="params">(T *p, <span class="keyword">size_t</span> n)</span></span></span><br><span class="line"><span class="function">                 </span>&#123; <span class="keyword">if</span> (<span class="number">0</span> != n)   Alloc::deallocate(p, n * <span class="keyword">sizeof</span>(T)); &#125; </span><br><span class="line">   <span class="function">sattic <span class="keyword">void</span> <span class="title">deallocate</span><span class="params">(T *p)</span></span></span><br><span class="line"><span class="function">                </span>&#123; Alloc::deallocate(p, <span class="keyword">sizeof</span>(T)); &#125;</span><br><span class="line"> &#125;;</span><br></pre></td></tr></table></figure>
+<h2 id="2-1-一、二级配置器的关系"><a href="#2-1-一、二级配置器的关系" class="headerlink" title="2.1 一、二级配置器的关系"></a>2.1 一、二级配置器的关系</h2><ul>
+<li>在学习两级配置器之前首先通过下图了解一下一、二级配置器是如何实现的以及两者之间的关系：<br><img src="https://img-blog.csdnimg.cn/20181112123857425.jpg?x-oss-process=image/watermark,type_ZmFuZ3poZW5naGVpdGk,shadow_10,text_aHR0cHM6Ly9ibG9nLmNzZG4ubmV0L3FxXzM4NzkwNzE2,size_16,color_FFFFFF,t_70" alt="第一级配置器与第二级配置器"></li>
+</ul>
+</li>
+</ul>
+<h2 id="2-2-第一级配置器-malloc-alloc-template"><a href="#2-2-第一级配置器-malloc-alloc-template" class="headerlink" title="2.2 第一级配置器 __malloc_alloc_template"></a>2.2 第一级配置器 __malloc_alloc_template</h2><ul>
+<li><p><code>主要以malloc()、free()、realloc()等C函数执行实际的内存配置、释放、重配置操作，并实现出C++ new-handler机制</code>:</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">&lt;iostream&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="meta-keyword">define</span> __throwBadAlloc  cerr &lt;&lt; <span class="meta-string">"out of memory"</span> &lt;&lt; endl;  exit(1);</span></span><br><span class="line"></span><br><span class="line"><span class="keyword">template</span> &lt;<span class="keyword">int</span> inst&gt;</span><br><span class="line"><span class="class"><span class="keyword">class</span> __<span class="title">MallocAllocTemplate</span> &#123;</span></span><br><span class="line">	<span class="function"><span class="keyword">typedef</span> <span class="title">void</span><span class="params">(*OOM_HANDLE)</span><span class="params">()</span></span>;</span><br><span class="line"><span class="keyword">private</span>:</span><br><span class="line">	<span class="comment">//以下函数用来处理内存不足的情况，oom:out  of  memory</span></span><br><span class="line">	<span class="function"><span class="keyword">static</span> <span class="keyword">void</span>  *<span class="title">oomMalloc</span><span class="params">(<span class="keyword">size_t</span>)</span></span>;</span><br><span class="line">	<span class="function"><span class="keyword">static</span> <span class="keyword">void</span>  *<span class="title">oomRealloc</span><span class="params">(<span class="keyword">void</span> *, <span class="keyword">size_t</span>)</span></span>;</span><br><span class="line">	<span class="keyword">static</span> OOM_HANDLE OOM_Handle;</span><br><span class="line"></span><br><span class="line"><span class="keyword">public</span>:</span><br><span class="line">	<span class="function"><span class="keyword">static</span> <span class="keyword">void</span> * <span class="title">allocate</span><span class="params">(<span class="keyword">size_t</span> n)</span> </span>&#123;</span><br><span class="line">		<span class="keyword">void</span> *result = <span class="built_in">malloc</span>(n);      <span class="comment">//第一级配置器直接使用malloc</span></span><br><span class="line">		<span class="comment">//如果内存不足则调用oomMalloc处理</span></span><br><span class="line">		<span class="keyword">if</span> (<span class="number">0</span> == result)   result = oomMalloc(n);</span><br><span class="line">		<span class="keyword">return</span> result;</span><br><span class="line">	&#125;</span><br><span class="line"></span><br><span class="line">	<span class="function"><span class="keyword">static</span> <span class="keyword">void</span> <span class="title">deallocate</span><span class="params">(<span class="keyword">void</span> *p, <span class="keyword">size_t</span> m)</span> </span>&#123;</span><br><span class="line">		<span class="built_in">free</span>(n);    <span class="comment">//第一级配置器直接调用free</span></span><br><span class="line">	&#125;</span><br><span class="line"></span><br><span class="line">	<span class="function"><span class="keyword">static</span> <span class="keyword">void</span> * <span class="title">reallocate</span><span class="params">(<span class="keyword">void</span> *p, <span class="keyword">size_t</span> oldSz, <span class="keyword">size_t</span> newSz)</span> </span>&#123;</span><br><span class="line">		<span class="keyword">void</span> *result = <span class="built_in">realloc</span>(p, newSz);   <span class="comment">//第一级配置器直接调用realloc()</span></span><br><span class="line">		<span class="comment">//内存不足调用oomRealloc</span></span><br><span class="line">		<span class="keyword">if</span> (<span class="number">0</span> == result)  result = oomRealloc(p, newSz);</span><br><span class="line">		<span class="keyword">return</span> result;</span><br><span class="line">	&#125;</span><br><span class="line"></span><br><span class="line">	<span class="comment">//static void (* set_malloc_handle (void (*f)())) ()</span></span><br><span class="line">	<span class="comment">//参数与返回值都是void (*)()</span></span><br><span class="line">	<span class="function"><span class="keyword">static</span> OOM_HANDLE  <span class="title">setMallocHandele</span><span class="params">(OOM_HANDLE f)</span> </span>&#123;</span><br><span class="line">		OOM_HANDLE old = OOM_Handle;</span><br><span class="line">		OOM_Handle = f;</span><br><span class="line">		<span class="keyword">return</span> old;</span><br><span class="line">	&#125;</span><br><span class="line">&#125;;</span><br><span class="line"></span><br><span class="line"><span class="comment">//设定初始指针为空</span></span><br><span class="line"><span class="keyword">template</span> &lt;<span class="keyword">int</span> inst&gt;</span><br><span class="line"><span class="keyword">void</span>(*__MallocAllocTemplate&lt;inst&gt;::OOM_Handle)() = <span class="literal">NULL</span>;</span><br><span class="line"></span><br><span class="line"><span class="comment">//内存不足尝试再次申请</span></span><br><span class="line"><span class="keyword">template</span> &lt;<span class="keyword">int</span> inst &gt;</span><br><span class="line"><span class="keyword">void</span> * __MallocAllocTemplate&lt;inst&gt;::oomMalloc(<span class="keyword">size_t</span> n) &#123;</span><br><span class="line">	<span class="keyword">void</span>(*myMallocHandle)();</span><br><span class="line">	<span class="keyword">void</span> *result;</span><br><span class="line">	<span class="keyword">for</span> (;;) &#123;</span><br><span class="line">		myMallocHandle = OOM_Handle;    <span class="comment">//不断尝试释放、配置、再释放、再配置...</span></span><br><span class="line">		<span class="keyword">if</span> (<span class="number">0</span> == myMallocHandle) &#123; __throwBadAlloc;  &#125;</span><br><span class="line">		(*myMallocHandle)();         <span class="comment">//调用处理例程，企图释放内存</span></span><br><span class="line">		result = <span class="built_in">malloc</span>(n);          <span class="comment">//再次尝试配置内存</span></span><br><span class="line">		<span class="keyword">if</span> (result)  <span class="keyword">return</span>(result);</span><br><span class="line">	&#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="keyword">template</span> &lt;<span class="keyword">int</span> inst &gt;</span><br><span class="line"><span class="keyword">void</span> * __MallocAllocTemplate&lt;inst&gt;::oomRealloc(<span class="keyword">void</span> *p, <span class="keyword">size_t</span> n) &#123;</span><br><span class="line">	<span class="keyword">void</span>(*myMallocHandle)();</span><br><span class="line">	<span class="keyword">void</span> *result;</span><br><span class="line">	<span class="keyword">for</span> (;;) &#123;</span><br><span class="line">		myMallocHandle = OOM_Handle;    <span class="comment">//不断尝试释放、配置、再释放、再配置...</span></span><br><span class="line">		<span class="keyword">if</span> (<span class="number">0</span> == myMallocHandle) &#123; __throwBadAlloc; &#125;</span><br><span class="line">		(*myMallocHandle)();         <span class="comment">//调用处理例程，企图释放内存</span></span><br><span class="line">		result = <span class="built_in">malloc</span>(n);          <span class="comment">//再次尝试配置内存</span></span><br><span class="line">		<span class="keyword">if</span> (result)  <span class="keyword">return</span>(result);</span><br><span class="line">	&#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+</li>
+<li><p><code>若内存不足处理函数oomMalloc与oomRealloc未设定&quot;内存不足处理例程&quot;，则直接丢出bad_alloc异常信息</code></p>
+<h2 id="2-3-第二级配置器"><a href="#2-3-第二级配置器" class="headerlink" title="2.3 第二级配置器"></a>2.3 第二级配置器</h2></li>
+<li>第二级配置器多了一些机制，避免小额区块造成内存的碎片，减少配置时的额外负担</li>
+<li><p>具体实现：<br>1.<code>如果区块够大，超过128bytes，移交第一级配置器处理</code><br>2.<code>当区块小于128bytes，则以内存池管理</code>：</p>
+<blockquote>
+<ol>
+<li>每次配置一块内存，维护对应的自由链表；</li>
+<li>下次收到相同大小的请求时，则直接从自由链表中拔出； </li>
+<li>客端释还小额区块，就回收到free-lists中</li>
+</ol>
+</blockquote>
+</li>
+<li><p>第二级配置器主动将任何小额区块的内存需求上调至8的倍数（<code>ROUND_UP</code>函数实现）</p>
+</li>
+<li>以下是部分函数实现：<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">//提升函数,将bytes提升至8的倍数</span></span><br><span class="line"><span class="function"><span class="keyword">static</span> size_t <span class="title">ROUND_UP</span><span class="params">(<span class="keyword">size_t</span> bytes)</span> </span>&#123;</span><br><span class="line">       <span class="keyword">return</span> (((bytes) + __ALIGN<span class="number">-1</span>) &amp; ~(__ALIGN - <span class="number">1</span>));</span><br><span class="line">&#125;</span><br><span class="line"><span class="comment">//16个free-lists</span></span><br><span class="line"><span class="keyword">static</span> obj * <span class="keyword">volatile</span> free_list[__NFREELISTS];</span><br><span class="line"><span class="comment">//填充free_list</span></span><br><span class="line"><span class="function"><span class="keyword">static</span> size_t <span class="title">FREELIST_INDEX</span><span class="params">(<span class="keyword">size_t</span>  bytes)</span> </span>&#123;</span><br><span class="line">     <span class="keyword">return</span> (((bytes)  + __ALIGN - <span class="number">1</span>)/__ALIGN  - <span class="number">1</span>);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+</li>
+</ul>
+<p><code>以下重点理解</code></p>
+<h3 id="2-3-1-空间配置函数alllocate"><a href="#2-3-1-空间配置函数alllocate" class="headerlink" title="2.3.1 空间配置函数alllocate()"></a>2.3.1 空间配置函数alllocate()</h3><ul>
+<li>步骤：<br><code>1.判断区块大小，大于128bytes调用第一级配置器</code><br><code>2.小于128bytes检查对应的free_list，如果有可用区块，直接拿来用；否则上调至8倍数边界，调用refill为free_list重新填充</code><br><img src="https://img-blog.csdnimg.cn/20181112233013401.jpg?x-oss-process=image/watermark,type_ZmFuZ3poZW5naGVpdGk,shadow_10,text_aHR0cHM6Ly9ibG9nLmNzZG4ubmV0L3FxXzM4NzkwNzE2,size_16,color_FFFFFF,t_70" alt="在这里插入图片描述"><figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">static</span> <span class="keyword">void</span> * <span class="title">allocate</span><span class="params">(<span class="keyword">size_t</span> n)</span> </span>&#123;</span><br><span class="line">  obj * <span class="keyword">volatile</span> * my_free_list;</span><br><span class="line">  obj * result;</span><br><span class="line">  <span class="keyword">if</span> (n &gt; (<span class="keyword">size_t</span>) __MAX_BYTES) &#123;   <span class="comment">//大于128调用第一级</span></span><br><span class="line">    <span class="keyword">return</span>(malloc_alloc::allocate(n));</span><br><span class="line">  &#125;</span><br><span class="line">  my_free_list = free_list + FREELIST_INDEX(n);  <span class="comment">//定位下标</span></span><br><span class="line">  result = *my_free_list;</span><br><span class="line">  <span class="keyword">if</span> (result == <span class="number">0</span>) &#123;</span><br><span class="line">    <span class="keyword">void</span> *r = refill(ROUND_UP(n));  <span class="comment">//没找到可用的free_list，重新填充free_list</span></span><br><span class="line">    <span class="keyword">return</span> r;</span><br><span class="line">  &#125;</span><br><span class="line">  <span class="comment">//调整free_list</span></span><br><span class="line">  *my_free_list = result-&gt;free_list_link;</span><br><span class="line">  <span class="keyword">return</span> (result); </span><br><span class="line">&#125;;</span><br></pre></td></tr></table></figure>
+</li>
+</ul>
+<h3 id="2-3-2-空间释放函数-deallocate"><a href="#2-3-2-空间释放函数-deallocate" class="headerlink" title="2.3.2  空间释放函数 deallocate()"></a>2.3.2  空间释放函数 deallocate()</h3><ul>
+<li>步骤：<br><code>1.判断区块大小，大于128bytes调用第一级配置器</code><br><code>2.小于128bytes则找出对应的free_list，将区块回收</code></li>
+</ul>
+<p><img src="https://img-blog.csdnimg.cn/20181112233403282.jpg?x-oss-process=image/watermark,type_ZmFuZ3poZW5naGVpdGk,shadow_10,text_aHR0cHM6Ly9ibG9nLmNzZG4ubmV0L3FxXzM4NzkwNzE2,size_16,color_FFFFFF,t_70" alt="在这里插入图片描述"><br><figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">static</span> <span class="keyword">void</span> <span class="title">deallocate</span><span class="params">(<span class="keyword">void</span> *p, <span class="keyword">size_t</span> n)</span> </span>&#123;</span><br><span class="line">  obj *q = (obj *)p;</span><br><span class="line">  obj * <span class="keyword">volatile</span> * my_free_list;</span><br><span class="line">  <span class="keyword">if</span> (n &gt; (<span class="keyword">size_t</span>) __MAX_BYTES) &#123;    <span class="comment">//大于128调用第一级配置器</span></span><br><span class="line">    malloc_alloc::deallocate(p, n);</span><br><span class="line">    <span class="keyword">return</span> ;</span><br><span class="line">  &#125;</span><br><span class="line">  my_free_list = free_list + FREELIST_INDEX(n);</span><br><span class="line">  q-&gt; free_list_link = *my_free_list;  <span class="comment">//调整free_list，回收区块</span></span><br><span class="line">  *my_free_list = q;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
+<h3 id="2-3-3-重新装填free-list"><a href="#2-3-3-重新装填free-list" class="headerlink" title="2.3.3 重新装填free_list"></a>2.3.3 重新装填free_list</h3><ul>
+<li>步骤：<br><code>1.free list中无可用区块，调用refill()，为free list填充空间</code><br><code>2.新空间取自内存池(由chunk_alloc())完成，默认取20个新节点</code><br><code>3.如果只申请到一块，则分配给调用者；否则在chunk空间建立free list</code><figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">template</span> &lt;<span class="keyword">bool</span> threads, <span class="keyword">int</span> inst&gt;</span><br><span class="line"><span class="keyword">void</span> * __default_alloc_template&lt;threads, inst&gt;::refill(<span class="keyword">size_t</span> n) &#123;</span><br><span class="line">	<span class="keyword">int</span> nobjs = <span class="number">20</span>;  <span class="comment">//默认取20块新节点</span></span><br><span class="line">	<span class="keyword">char</span> * chunk = chunk_alloc(n, nobjs);   <span class="comment">//在内存池中申请</span></span><br><span class="line">	<span class="keyword">if</span> (<span class="number">1</span> == nobjs)   <span class="keyword">return</span>(chunk);  <span class="comment">//只获得一块区块，给调用者使用</span></span><br><span class="line">	<span class="comment">//否则跳整free list/，纳入新节点</span></span><br><span class="line">	obj * my_free_list = free_list + FREELIST_INDDEX(n);</span><br><span class="line">	obj * result = (obj*)chunk; <span class="comment">//返回一块给客端</span></span><br><span class="line">	obj * next = (obj*)(chunk + n); <span class="comment">//指向下一块内存</span></span><br><span class="line">	obj * cur = next;</span><br><span class="line">	*my_free_list = cur;</span><br><span class="line">	<span class="comment">//在chunk空间建立free list连接</span></span><br><span class="line">	<span class="keyword">for</span> (<span class="keyword">int</span> i = <span class="number">1</span>; i &lt; nobjs; ++i) &#123;</span><br><span class="line">		next = (obj*)((<span class="keyword">char</span>*)next + n);</span><br><span class="line">		cur-&gt;free_list_link = next;</span><br><span class="line">		cur = next;</span><br><span class="line">	&#125;</span><br><span class="line">	cur-&gt;free_list_link = <span class="literal">NULL</span>;</span><br><span class="line">	<span class="keyword">return</span> result;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+</li>
+</ul>
+<h3 id="2-3-4-内存池取空间-chunk-alloc实现"><a href="#2-3-4-内存池取空间-chunk-alloc实现" class="headerlink" title="2.3.4 内存池取空间(chunk_alloc实现)"></a>2.3.4 内存池取空间(chunk_alloc实现)</h3><ul>
+<li>步骤（主要分以下四个步骤进行）:<br><code>1. 内存池剩余空间完全满足需求，则直接分配给用户</code><br><code>2. 若剩余空间不能完全满足，但足够提供一个以上的区块，则将这些区块分配给用户</code><br><code>3. 若剩余空间一个都满足不了，则将残余空间编入free list，然后配置heap空间：</code><blockquote>
+<p>1.向系统heap申请空间</p>
+<ol start="2">
+<li>分配成功则返回</li>
+<li>分配失败则检索自己的free list查看是否有可用区块</li>
+<li>到处都无内存使用则调用第一级配置器</li>
+</ol>
+</blockquote>
+</li>
+</ul>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">template</span> &lt;<span class="keyword">bool</span> threads, <span class="keyword">int</span> inst&gt;</span><br><span class="line"><span class="keyword">char</span> *</span><br><span class="line">__default_alloc_template&lt;threads, inst&gt;::</span><br><span class="line">	chunk_alloc(<span class="keyword">size_t</span> size, <span class="keyword">int</span>&amp; nobjs) &#123;</span><br><span class="line">		<span class="keyword">char</span> *result;</span><br><span class="line">		<span class="keyword">size_t</span> totalbytes = size * nobjs;  <span class="comment">//需求量 </span></span><br><span class="line">		<span class="keyword">size_t</span> bytesleft = end_free - start_free;  <span class="comment">//内存池剩余量 </span></span><br><span class="line">		<span class="comment">//如果剩余大于需求 </span></span><br><span class="line">		<span class="keyword">if</span> (bytesleft &gt;= totalbytes) &#123;</span><br><span class="line">			result = start_free;</span><br><span class="line">			start_free += totalbytes;</span><br><span class="line">			resturn result;</span><br><span class="line">		&#125;</span><br><span class="line">		<span class="comment">//剩余只能满足一个或以上的区块，不能全部满足 </span></span><br><span class="line">		<span class="keyword">else</span> <span class="keyword">if</span>(bytesleft &gt;= size) &#123;</span><br><span class="line">			nobjs = bytesleft/size;</span><br><span class="line">			totalbytes = size * nobjs;</span><br><span class="line">			result = start_free;</span><br><span class="line">			start_free += totalbytes;</span><br><span class="line">			<span class="keyword">return</span> result;</span><br><span class="line">		&#125;</span><br><span class="line">		<span class="comment">//剩余空间一个区块都不能满足</span></span><br><span class="line">		<span class="keyword">else</span> &#123;</span><br><span class="line">			<span class="comment">//内存池中还有些许零头 ，将其分配给用户 </span></span><br><span class="line">			<span class="keyword">if</span> (bytesleft &gt;<span class="number">0</span>) &#123;</span><br><span class="line">				<span class="comment">//寻找适当的free list </span></span><br><span class="line">				obj * <span class="keyword">volatile</span> *myfreelist = free_list + FREELIST_INDEX(bytesleft);</span><br><span class="line">				((obj *)start_free)-&gt;free_list_link = *myfreelist;</span><br><span class="line">				*myfreelist = (obj *)start_free;</span><br><span class="line">			&#125;</span><br><span class="line">			<span class="keyword">size_t</span> bytesToGet = <span class="number">2</span> * totalbytes + ROUND_UP(heap_size&gt;&gt;<span class="number">4</span>); <span class="comment">//配置heap空间，初始量设为需求的两倍加上一个随配置次数增大的附加量 </span></span><br><span class="line">			start_free = (<span class="keyword">char</span> *)<span class="built_in">malloc</span>(bytesToGet); </span><br><span class="line">			<span class="keyword">if</span> (<span class="number">0</span> == start_free) &#123;  </span><br><span class="line">				<span class="comment">//heap空间不足，malloc失败</span></span><br><span class="line">				 <span class="keyword">int</span> i;</span><br><span class="line">				 obj * <span class="keyword">volatile</span> * myfreelist, *p;</span><br><span class="line">				 <span class="comment">//搜寻free list，查找是否还有未用的区块</span></span><br><span class="line">				 <span class="keyword">for</span> (i = size; i &lt;= _MAX_BYTES; i += _ALIGN) &#123;</span><br><span class="line">				 	myfreelist = free_list + FREELIST_INDEX(i);</span><br><span class="line">				 	p = *myfreelist;</span><br><span class="line">				 	<span class="keyword">if</span> (<span class="number">0</span> != p) &#123;</span><br><span class="line">				 		<span class="comment">//调整free list释放未用区块 </span></span><br><span class="line">				 		myfreelist = p -&gt; free_list_link;</span><br><span class="line">				 		start_free = (<span class="keyword">char</span>*)p;</span><br><span class="line">				 		end_free = start_free + i;</span><br><span class="line">					 	<span class="keyword">return</span> (chunk_alloc(size, nobjs));  <span class="comment">//递归调用，修正nobjs </span></span><br><span class="line">					 &#125;</span><br><span class="line">				 &#125;</span><br><span class="line">				<span class="comment">//所有地方都无内存可用，则调用第一级配置器，使用out of memory机制 </span></span><br><span class="line">				end_free = <span class="number">0</span>;  </span><br><span class="line">				start_free = (<span class="keyword">char</span> *)malloc_alloc::allocate(bytesToGet);  </span><br><span class="line">			&#125;</span><br><span class="line">			<span class="comment">//分配成功则返回 </span></span><br><span class="line">			heap_size = bytesToGet;</span><br><span class="line">			end_free = start_free + bytesToGet;</span><br><span class="line">			<span class="keyword">return</span> (chunk_alloc(size, nobjs));   <span class="comment">//递归修正nobjs </span></span><br><span class="line">		&#125; 	</span><br><span class="line">	&#125;</span><br></pre></td></tr></table></figure>
+<h1 id="3-C-new-handler机制"><a href="#3-C-new-handler机制" class="headerlink" title="3. C++ new-handler机制"></a>3. C++ new-handler机制</h1><blockquote>
+<p>本章在讲解第一级配置器时初次提及C++ new-handler机制，于是就去《Effective C++》进一步了解了有关new-handler机制，日后再次遇到时也能迅速回忆起。</p>
+<ul>
+<li>1.<code>“当operator new抛出异常以反映一个未获满足的内存需求之前，它会先调用一个客户指定的错误处理函数，一个所谓的new-handler”</code>，这是Effective C++中的原话，用以引出new-handler，从这句话我们大概能知道new-handler是用来处理内存不足的一个机制</li>
+<li>2.为了指定这个“用以处理内存不足”的函数，客户需要调用<code>set_new_handler</code>，定义于&lt; new&gt;的一个标准程序库函数：<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">namespace</span> <span class="built_in">std</span> &#123;</span><br><span class="line">	<span class="function"><span class="keyword">typedef</span> <span class="title">void</span> <span class="params">(*new_handler)</span><span class="params">()</span></span>;</span><br><span class="line">	<span class="comment">//返回值和参数都是new_handler</span></span><br><span class="line">	<span class="function">new_handler <span class="title">set_new_handler</span><span class="params">(new_handler p)</span> <span class="title">throw</span><span class="params">()</span></span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+</li>
+</ul>
+</blockquote>
+<ul>
+<li><p>3.set_new_handler的参数是一个指针，指向operator new无法分配足够内存时需要调用的函数：</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">void</span> <span class="title">outOfMem</span><span class="params">()</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">	<span class="built_in">std</span>::<span class="built_in">cerr</span> &lt;&lt; <span class="string">"Unable to satisfy request for memory\n"</span>;</span><br><span class="line">	<span class="built_in">std</span>::<span class="built_in">abort</span>();</span><br><span class="line">&#125;</span><br><span class="line"><span class="function"><span class="keyword">int</span> <span class="title">main</span><span class="params">()</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">	<span class="built_in">std</span>::set_new_handler(outOfMem); <span class="comment">//当内存不足时，调用处理函数outOfMem</span></span><br><span class="line">	<span class="keyword">int</span>* pBigDataArrry = <span class="keyword">new</span> <span class="keyword">int</span>[<span class="number">100000000L</span>];</span><br><span class="line">	...</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+</li>
+<li><p>4.设计一个良好的new-handler：</p>
+<p>4.1 <code>让更多内存可被使用</code>：程序一开始执行就分配一大块内存，而后当new-handler第一次被调用，将它们释放还给程序<br>4.2 <code>安装另一个new-handler</code>：令new-handler修改一些会影响new-handler行为的数据<br>4.3 <code>卸载new-handler</code>将NULL指针传给set_new_handler<br>4.4 <code>抛出bad_alloc的异常</code><br>4.5 <code>不返回</code>：调用abort或exit</p>
+</li>
+<li>5.基于以上设计，你可以定制你自己的new-handle机制</li>
+</ul>
+<h1 id="4-free-list的节点结构"><a href="#4-free-list的节点结构" class="headerlink" title="4. free list的节点结构"></a>4. free list的节点结构</h1><p><img src="https://i.imgur.com/qO3eNNa.jpg" alt=""></p>
+<ul>
+<li><p>通过上图可以了解到STL通过指针来维护自由链表，有人可能会想每个节点都需要额外的指针，会不会造成额外的负担呢？答案是会的，那么STL的设计精妙之处在哪呢？我们可以先来看一看它的节点结构：</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">union</span> obj &#123;</span><br><span class="line">	<span class="keyword">union</span> obj  * free_list_link;</span><br><span class="line">	<span class="keyword">char</span> client_data[<span class="number">1</span>];</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+</li>
+<li><p>“<code>上述obj所用的union，由于union之故，从其第一字段观之，obj可被视为一个指针，指向相同形式的另一个obj，从其第二字段观之，obj可被视为一个指针，指向实际区块</code>“，这段话前半部分很好理解，因为free_list_link本身就是一个obj的指针，但后半部分<code>obj可被视为一个指针，指向实际区块</code>，这一句话又怎么理解呢？<br><code>1.首先我们回顾下union的性质，一个union类任意时刻只允许其一个数据成员有值，且数据成员公用内存</code><br><code>2.由上，该free  list节点结构union中的数据成员free_list_link和client_data公用一块内存，前者是指向下一节点的指针，后者是指向实际内存的指针，无论什么情况，二者只用其一，不分配的时候，节点就放在空闲链表之内，节点内容是指向下一节点的地址，如果被分配了，那么节点指向的就是实际的内存</code></p>
+</li>
+</ul>
+
+      
+    </div>
+    
+    
+    
+	
+	
+	  <div>
+	     
+   <div>
+        <div style="text-align:center;color: #ccc;font-size:20px;">-------------Thank you for reading-------------</div>
+   </div>
+
+	  </div>
+	
+
+    
+
+    
+
+    
+
+    <footer class="post-footer">
+      
+        <div class="post-tags">
+          
+            <a href="/tags/STL/" rel="tag"><i class="fa fa-tag"></i> STL</a>
+          
+        </div>
+      
+
+      
+      
+      
+
+      
+        <div class="post-nav">
+          <div class="post-nav-next post-nav-item">
+            
+              <a href="/2018/11/13/STL源码剖析（二）空间配置器/" rel="prev" title="STL源码剖析（二）空间配置器">
+                <i class="fa fa-chevron-left"></i> STL源码剖析（二）空间配置器
+              </a>
+            
+          </div>
+
+          <span class="post-nav-divider"></span>
+
+          <div class="post-nav-prev post-nav-item">
+            
+              <a href="/2018/11/09/STL源码剖析（一）/" rel="next" title="STL源码剖析（一）">
+                STL源码剖析（一） <i class="fa fa-chevron-right"></i>
+              </a>
+            
+          </div>
+        </div>
+      
+
+      
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+
+    <div class="post-spread">
+      
+    </div>
+  </div>
+
+
+          </div>
+          
+
+
+          
+
+  
+    <div class="comments" id="comments">
+    </div>
+  
+
+
+
+        </div>
+        
+          
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    
+      <div id="sidebar-dimmer"></div>
+    
+    <div class="sidebar-inner">
+
+      
+
+      
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap">
+            文章目录
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview-wrap">
+            站点概览
+          </li>
+        </ul>
+      
+
+      <section class="site-overview-wrap sidebar-panel">
+        <div class="site-overview">
+          <div class="site-author motion-element" itemprop="author" itemscope="" itemtype="http://schema.org/Person">
+            
+              <img class="site-author-image" itemprop="image" src="/images/p.jpg" alt="ersheng">
+            
+              <p class="site-author-name" itemprop="name">ersheng</p>
+              <p class="site-description motion-element" itemprop="description">a sword, a person</p>
+          </div>
+
+          <nav class="site-state motion-element">
+
+            
+              <div class="site-state-item site-state-posts">
+              
+                <a href="/archives/">
+              
+                  <span class="site-state-item-count">45</span>
+                  <span class="site-state-item-name">日志</span>
+                </a>
+              </div>
+            
+
+            
+              
+              
+              <div class="site-state-item site-state-categories">
+                <a href="/categories/index.html">
+                  <span class="site-state-item-count">9</span>
+                  <span class="site-state-item-name">分类</span>
+                </a>
+              </div>
+            
+
+            
+              
+              
+              <div class="site-state-item site-state-tags">
+                <a href="/tags/index.html">
+                  <span class="site-state-item-count">43</span>
+                  <span class="site-state-item-name">标签</span>
+                </a>
+              </div>
+            
+          </nav>
+
+          
+            <div class="feed-link motion-element">
+              <a href="/atom.xml" rel="alternate">
+                <i class="fa fa-rss"></i>
+                RSS
+              </a>
+            </div>
+          
+
+          
+            <div class="links-of-author motion-element">
+                
+                  <span class="links-of-author-item">
+                    <a href="https://github.com/ershengaaa" target="_blank" title="GitHub">
+                      
+                        <i class="fa fa-fw fa-github"></i>GitHub</a>
+                  </span>
+                
+                  <span class="links-of-author-item">
+                    <a href="https://blog.csdn.net/qq_38790716" target="_blank" title="CSDN">
+                      
+                        <i class="fa fa-fw fa-globe"></i>CSDN</a>
+                  </span>
+                
+            </div>
+          
+
+          
+          
+
+          
+          
+
+          
+
+        </div>
+      </section>
+
+      
+      <!--noindex-->
+        <section class="post-toc-wrap motion-element sidebar-panel sidebar-panel-active">
+          <div class="post-toc">
+
+            
+              
+            
+
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#1-SGI-空间配置与释放"><span class="nav-number">1.</span> <span class="nav-text">1.SGI 空间配置与释放</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#2-两级配置器"><span class="nav-number">2.</span> <span class="nav-text">2. 两级配置器</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#2-1-一、二级配置器的关系"><span class="nav-number">2.1.</span> <span class="nav-text">2.1 一、二级配置器的关系</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#2-2-第一级配置器-malloc-alloc-template"><span class="nav-number">2.2.</span> <span class="nav-text">2.2 第一级配置器 __malloc_alloc_template</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#2-3-第二级配置器"><span class="nav-number">2.3.</span> <span class="nav-text">2.3 第二级配置器</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#2-3-1-空间配置函数alllocate"><span class="nav-number">2.3.1.</span> <span class="nav-text">2.3.1 空间配置函数alllocate()</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#2-3-2-空间释放函数-deallocate"><span class="nav-number">2.3.2.</span> <span class="nav-text">2.3.2  空间释放函数 deallocate()</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#2-3-3-重新装填free-list"><span class="nav-number">2.3.3.</span> <span class="nav-text">2.3.3 重新装填free_list</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#2-3-4-内存池取空间-chunk-alloc实现"><span class="nav-number">2.3.4.</span> <span class="nav-text">2.3.4 内存池取空间(chunk_alloc实现)</span></a></li></ol></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#3-C-new-handler机制"><span class="nav-number">3.</span> <span class="nav-text">3. C++ new-handler机制</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#4-free-list的节点结构"><span class="nav-number">4.</span> <span class="nav-text">4. free list的节点结构</span></a></li></ol></div>
+            
+
+          </div>
+        </section>
+      <!--/noindex-->
+      
+
+      
+        <div class="back-to-top">
+          <i class="fa fa-arrow-up"></i>
+          
+            <span id="scrollpercent"><span>0</span>%</span>
+          
+        </div>
+      
+
+    </div>
+  </aside>
+
+
+        
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <script async src="//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js">
+</script>
+<div class="copyright">&copy; <span itemprop="copyrightYear">2018</span>
+  <span class="with-love" id="heart">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">ersheng</span>
+
+  
+</div>
+
+<p>meet better yourself!</p>   <!--����-->
+<!--
+
+
+
+
+  <div class="theme-info">主题 &mdash; <a class="theme-link" target="_blank" href="https://github.com/iissnan/hexo-theme-next">NexT.Muse</a> v5.1.4</div>
+
+-->
+
+
+
+
+
+        
+<div class="busuanzi-count">
+  <script async src="https://dn-lbstatics.qbox.me/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+
+  
+    <span class="site-uv">
+      <i class="fa fa-user"></i>
+      <span class="busuanzi-value" id="busuanzi_value_site_uv"></span>
+      
+    </span>
+  
+
+  
+    <span class="site-pv">
+      <i class="fa fa-eye"></i>
+      <span class="busuanzi-value" id="busuanzi_value_site_pv"></span>
+      
+    </span>
+  
+</div>
+
+
+
+
+
+
+
+
+        
+      </div>
+    </footer>
+
+    
+
+    
+
+  </div>
+
+  
+
+<script type="text/javascript">
+  if (Object.prototype.toString.call(window.Promise) !== '[object Function]') {
+    window.Promise = null;
+  }
+</script>
+
+
+
+
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+    <script type="text/javascript" src="/lib/jquery/index.js?v=2.1.3"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/fastclick/lib/fastclick.min.js?v=1.0.6"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/jquery_lazyload/jquery.lazyload.js?v=1.9.7"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/velocity/velocity.min.js?v=1.2.1"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/velocity/velocity.ui.min.js?v=1.2.1"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/fancybox/source/jquery.fancybox.pack.js?v=2.1.5"></script>
+  
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/utils.js?v=5.1.4"></script>
+
+  <script type="text/javascript" src="/js/src/motion.js?v=5.1.4"></script>
+
+
+
+  
+  
+
+  
+  <script type="text/javascript" src="/js/src/scrollspy.js?v=5.1.4"></script>
+<script type="text/javascript" src="/js/src/post-details.js?v=5.1.4"></script>
+
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/bootstrap.js?v=5.1.4"></script>
+
+
+
+  
+
+
+  
+
+
+
+
+	
+
+
+
+
+
+  
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+  <script src="//cdn1.lncld.net/static/js/3.0.4/av-min.js"></script>
+  <script src="//unpkg.com/valine/dist/Valine.min.js"></script>
+  
+  <script type="text/javascript">
+    var GUEST = ['nick','mail','link'];
+    var guest = 'nick,mail,link';
+    guest = guest.split(',').filter(item=>{
+      return GUEST.indexOf(item)>-1;
+    });
+    new Valine({
+        el: '#comments' ,
+        verify: false,
+        notify: false,
+        appId: '2xoRk8O4oK5X8x5yQpLdeNMV-gzGzoHsz',
+        appKey: 'arry1O4lSfV4qMmPKqNNvpMz',
+        placeholder: 'just go go',
+        avatar:'mm',
+        guest_info:guest,
+        pageSize:'10' || 10,
+    });
+  </script>
+
+
+
+  
+
+  <script type="text/javascript">
+    // Popup Window;
+    var isfetched = false;
+    var isXml = true;
+    // Search DB path;
+    var search_path = "search.xml";
+    if (search_path.length === 0) {
+      search_path = "search.xml";
+    } else if (/json$/i.test(search_path)) {
+      isXml = false;
+    }
+    var path = "/" + search_path;
+    // monitor main search box;
+
+    var onPopupClose = function (e) {
+      $('.popup').hide();
+      $('#local-search-input').val('');
+      $('.search-result-list').remove();
+      $('#no-result').remove();
+      $(".local-search-pop-overlay").remove();
+      $('body').css('overflow', '');
+    }
+
+    function proceedsearch() {
+      $("body")
+        .append('<div class="search-popup-overlay local-search-pop-overlay"></div>')
+        .css('overflow', 'hidden');
+      $('.search-popup-overlay').click(onPopupClose);
+      $('.popup').toggle();
+      var $localSearchInput = $('#local-search-input');
+      $localSearchInput.attr("autocapitalize", "none");
+      $localSearchInput.attr("autocorrect", "off");
+      $localSearchInput.focus();
+    }
+
+    // search function;
+    var searchFunc = function(path, search_id, content_id) {
+      'use strict';
+
+      // start loading animation
+      $("body")
+        .append('<div class="search-popup-overlay local-search-pop-overlay">' +
+          '<div id="search-loading-icon">' +
+          '<i class="fa fa-spinner fa-pulse fa-5x fa-fw"></i>' +
+          '</div>' +
+          '</div>')
+        .css('overflow', 'hidden');
+      $("#search-loading-icon").css('margin', '20% auto 0 auto').css('text-align', 'center');
+
+      $.ajax({
+        url: path,
+        dataType: isXml ? "xml" : "json",
+        async: true,
+        success: function(res) {
+          // get the contents from search data
+          isfetched = true;
+          $('.popup').detach().appendTo('.header-inner');
+          var datas = isXml ? $("entry", res).map(function() {
+            return {
+              title: $("title", this).text(),
+              content: $("content",this).text(),
+              url: $("url" , this).text()
+            };
+          }).get() : res;
+          var input = document.getElementById(search_id);
+          var resultContent = document.getElementById(content_id);
+          var inputEventFunction = function() {
+            var searchText = input.value.trim().toLowerCase();
+            var keywords = searchText.split(/[\s\-]+/);
+            if (keywords.length > 1) {
+              keywords.push(searchText);
+            }
+            var resultItems = [];
+            if (searchText.length > 0) {
+              // perform local searching
+              datas.forEach(function(data) {
+                var isMatch = false;
+                var hitCount = 0;
+                var searchTextCount = 0;
+                var title = data.title.trim();
+                var titleInLowerCase = title.toLowerCase();
+                var content = data.content.trim().replace(/<[^>]+>/g,"");
+                var contentInLowerCase = content.toLowerCase();
+                var articleUrl = decodeURIComponent(data.url);
+                var indexOfTitle = [];
+                var indexOfContent = [];
+                // only match articles with not empty titles
+                if(title != '') {
+                  keywords.forEach(function(keyword) {
+                    function getIndexByWord(word, text, caseSensitive) {
+                      var wordLen = word.length;
+                      if (wordLen === 0) {
+                        return [];
+                      }
+                      var startPosition = 0, position = [], index = [];
+                      if (!caseSensitive) {
+                        text = text.toLowerCase();
+                        word = word.toLowerCase();
+                      }
+                      while ((position = text.indexOf(word, startPosition)) > -1) {
+                        index.push({position: position, word: word});
+                        startPosition = position + wordLen;
+                      }
+                      return index;
+                    }
+
+                    indexOfTitle = indexOfTitle.concat(getIndexByWord(keyword, titleInLowerCase, false));
+                    indexOfContent = indexOfContent.concat(getIndexByWord(keyword, contentInLowerCase, false));
+                  });
+                  if (indexOfTitle.length > 0 || indexOfContent.length > 0) {
+                    isMatch = true;
+                    hitCount = indexOfTitle.length + indexOfContent.length;
+                  }
+                }
+
+                // show search results
+
+                if (isMatch) {
+                  // sort index by position of keyword
+
+                  [indexOfTitle, indexOfContent].forEach(function (index) {
+                    index.sort(function (itemLeft, itemRight) {
+                      if (itemRight.position !== itemLeft.position) {
+                        return itemRight.position - itemLeft.position;
+                      } else {
+                        return itemLeft.word.length - itemRight.word.length;
+                      }
+                    });
+                  });
+
+                  // merge hits into slices
+
+                  function mergeIntoSlice(text, start, end, index) {
+                    var item = index[index.length - 1];
+                    var position = item.position;
+                    var word = item.word;
+                    var hits = [];
+                    var searchTextCountInSlice = 0;
+                    while (position + word.length <= end && index.length != 0) {
+                      if (word === searchText) {
+                        searchTextCountInSlice++;
+                      }
+                      hits.push({position: position, length: word.length});
+                      var wordEnd = position + word.length;
+
+                      // move to next position of hit
+
+                      index.pop();
+                      while (index.length != 0) {
+                        item = index[index.length - 1];
+                        position = item.position;
+                        word = item.word;
+                        if (wordEnd > position) {
+                          index.pop();
+                        } else {
+                          break;
+                        }
+                      }
+                    }
+                    searchTextCount += searchTextCountInSlice;
+                    return {
+                      hits: hits,
+                      start: start,
+                      end: end,
+                      searchTextCount: searchTextCountInSlice
+                    };
+                  }
+
+                  var slicesOfTitle = [];
+                  if (indexOfTitle.length != 0) {
+                    slicesOfTitle.push(mergeIntoSlice(title, 0, title.length, indexOfTitle));
+                  }
+
+                  var slicesOfContent = [];
+                  while (indexOfContent.length != 0) {
+                    var item = indexOfContent[indexOfContent.length - 1];
+                    var position = item.position;
+                    var word = item.word;
+                    // cut out 100 characters
+                    var start = position - 20;
+                    var end = position + 80;
+                    if(start < 0){
+                      start = 0;
+                    }
+                    if (end < position + word.length) {
+                      end = position + word.length;
+                    }
+                    if(end > content.length){
+                      end = content.length;
+                    }
+                    slicesOfContent.push(mergeIntoSlice(content, start, end, indexOfContent));
+                  }
+
+                  // sort slices in content by search text's count and hits' count
+
+                  slicesOfContent.sort(function (sliceLeft, sliceRight) {
+                    if (sliceLeft.searchTextCount !== sliceRight.searchTextCount) {
+                      return sliceRight.searchTextCount - sliceLeft.searchTextCount;
+                    } else if (sliceLeft.hits.length !== sliceRight.hits.length) {
+                      return sliceRight.hits.length - sliceLeft.hits.length;
+                    } else {
+                      return sliceLeft.start - sliceRight.start;
+                    }
+                  });
+
+                  // select top N slices in content
+
+                  var upperBound = parseInt('1');
+                  if (upperBound >= 0) {
+                    slicesOfContent = slicesOfContent.slice(0, upperBound);
+                  }
+
+                  // highlight title and content
+
+                  function highlightKeyword(text, slice) {
+                    var result = '';
+                    var prevEnd = slice.start;
+                    slice.hits.forEach(function (hit) {
+                      result += text.substring(prevEnd, hit.position);
+                      var end = hit.position + hit.length;
+                      result += '<b class="search-keyword">' + text.substring(hit.position, end) + '</b>';
+                      prevEnd = end;
+                    });
+                    result += text.substring(prevEnd, slice.end);
+                    return result;
+                  }
+
+                  var resultItem = '';
+
+                  if (slicesOfTitle.length != 0) {
+                    resultItem += "<li><a href='" + articleUrl + "' class='search-result-title'>" + highlightKeyword(title, slicesOfTitle[0]) + "</a>";
+                  } else {
+                    resultItem += "<li><a href='" + articleUrl + "' class='search-result-title'>" + title + "</a>";
+                  }
+
+                  slicesOfContent.forEach(function (slice) {
+                    resultItem += "<a href='" + articleUrl + "'>" +
+                      "<p class=\"search-result\">" + highlightKeyword(content, slice) +
+                      "...</p>" + "</a>";
+                  });
+
+                  resultItem += "</li>";
+                  resultItems.push({
+                    item: resultItem,
+                    searchTextCount: searchTextCount,
+                    hitCount: hitCount,
+                    id: resultItems.length
+                  });
+                }
+              })
+            };
+            if (keywords.length === 1 && keywords[0] === "") {
+              resultContent.innerHTML = '<div id="no-result"><i class="fa fa-search fa-5x" /></div>'
+            } else if (resultItems.length === 0) {
+              resultContent.innerHTML = '<div id="no-result"><i class="fa fa-frown-o fa-5x" /></div>'
+            } else {
+              resultItems.sort(function (resultLeft, resultRight) {
+                if (resultLeft.searchTextCount !== resultRight.searchTextCount) {
+                  return resultRight.searchTextCount - resultLeft.searchTextCount;
+                } else if (resultLeft.hitCount !== resultRight.hitCount) {
+                  return resultRight.hitCount - resultLeft.hitCount;
+                } else {
+                  return resultRight.id - resultLeft.id;
+                }
+              });
+              var searchResultList = '<ul class=\"search-result-list\">';
+              resultItems.forEach(function (result) {
+                searchResultList += result.item;
+              })
+              searchResultList += "</ul>";
+              resultContent.innerHTML = searchResultList;
+            }
+          }
+
+          if ('auto' === 'auto') {
+            input.addEventListener('input', inputEventFunction);
+          } else {
+            $('.search-icon').click(inputEventFunction);
+            input.addEventListener('keypress', function (event) {
+              if (event.keyCode === 13) {
+                inputEventFunction();
+              }
+            });
+          }
+
+          // remove loading animation
+          $(".local-search-pop-overlay").remove();
+          $('body').css('overflow', '');
+
+          proceedsearch();
+        }
+      });
+    }
+
+    // handle and trigger popup window;
+    $('.popup-trigger').click(function(e) {
+      e.stopPropagation();
+      if (isfetched === false) {
+        searchFunc(path, 'local-search-input', 'local-search-result');
+      } else {
+        proceedsearch();
+      };
+    });
+
+    $('.popup-btn-close').click(onPopupClose);
+    $('.popup').click(function(e){
+      e.stopPropagation();
+    });
+    $(document).on('keyup', function (event) {
+      var shouldDismissSearchPopup = event.which === 27 &&
+        $('.search-popup').is(':visible');
+      if (shouldDismissSearchPopup) {
+        onPopupClose();
+      }
+    });
+  </script>
+
+
+
+
+
+  
+
+  
+  <script src="https://cdn1.lncld.net/static/js/av-core-mini-0.6.4.js"></script>
+  <script>AV.initialize("2xoRk8O4oK5X8x5yQpLdeNMV-gzGzoHsz", "arry1O4lSfV4qMmPKqNNvpMz");</script>
+  <script>
+    function showTime(Counter) {
+      var query = new AV.Query(Counter);
+      var entries = [];
+      var $visitors = $(".leancloud_visitors");
+
+      $visitors.each(function () {
+        entries.push( $(this).attr("id").trim() );
+      });
+
+      query.containedIn('url', entries);
+      query.find()
+        .done(function (results) {
+          var COUNT_CONTAINER_REF = '.leancloud-visitors-count';
+
+          if (results.length === 0) {
+            $visitors.find(COUNT_CONTAINER_REF).text(0);
+            return;
+          }
+
+          for (var i = 0; i < results.length; i++) {
+            var item = results[i];
+            var url = item.get('url');
+            var time = item.get('time');
+            var element = document.getElementById(url);
+
+            $(element).find(COUNT_CONTAINER_REF).text(time);
+          }
+          for(var i = 0; i < entries.length; i++) {
+            var url = entries[i];
+            var element = document.getElementById(url);
+            var countSpan = $(element).find(COUNT_CONTAINER_REF);
+            if( countSpan.text() == '') {
+              countSpan.text(0);
+            }
+          }
+        })
+        .fail(function (object, error) {
+          console.log("Error: " + error.code + " " + error.message);
+        });
+    }
+
+    function addCount(Counter) {
+      var $visitors = $(".leancloud_visitors");
+      var url = $visitors.attr('id').trim();
+      var title = $visitors.attr('data-flag-title').trim();
+      var query = new AV.Query(Counter);
+
+      query.equalTo("url", url);
+      query.find({
+        success: function(results) {
+          if (results.length > 0) {
+            var counter = results[0];
+            counter.fetchWhenSave(true);
+            counter.increment("time");
+            counter.save(null, {
+              success: function(counter) {
+                var $element = $(document.getElementById(url));
+                $element.find('.leancloud-visitors-count').text(counter.get('time'));
+              },
+              error: function(counter, error) {
+                console.log('Failed to save Visitor num, with error message: ' + error.message);
+              }
+            });
+          } else {
+            var newcounter = new Counter();
+            /* Set ACL */
+            var acl = new AV.ACL();
+            acl.setPublicReadAccess(true);
+            acl.setPublicWriteAccess(true);
+            newcounter.setACL(acl);
+            /* End Set ACL */
+            newcounter.set("title", title);
+            newcounter.set("url", url);
+            newcounter.set("time", 1);
+            newcounter.save(null, {
+              success: function(newcounter) {
+                var $element = $(document.getElementById(url));
+                $element.find('.leancloud-visitors-count').text(newcounter.get('time'));
+              },
+              error: function(newcounter, error) {
+                console.log('Failed to create');
+              }
+            });
+          }
+        },
+        error: function(error) {
+          console.log('Error:' + error.code + " " + error.message);
+        }
+      });
+    }
+
+    $(function() {
+      var Counter = AV.Object.extend("Counter");
+      if ($('.leancloud_visitors').length == 1) {
+        addCount(Counter);
+      } else if ($('.post-title-link').length > 1) {
+        showTime(Counter);
+      }
+    });
+  </script>
+
+
+
+  
+
+  
+
+  
+  
+
+  
+
+  
+
+  
+
+  
+  <!-- ҳ����С���� -->
+<script type="text/javascript" src="/js/src/love.js"></script>
+<script async src="//dn-lbstatics.qbox.me/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+<script src="/live2dw/lib/L2Dwidget.min.js?0c58a1486de42ac6cc1c59c7d98ae887"></script><script>L2Dwidget.init({"pluginRootPath":"live2dw/","pluginJsPath":"lib/","pluginModelPath":"assets/","model":{"jsonPath":"live2d-widget-model-wanko"},"display":{"position":"right","width":150,"height":300},"mobile":{"show":true},"log":false,"tagMode":false});</script></body>
+</html>

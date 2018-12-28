@@ -1,0 +1,1459 @@
+<!DOCTYPE html>
+
+
+
+  
+
+
+<html class="theme-next muse use-motion" lang="zh-Hans">
+<head><meta name="generator" content="Hexo 3.8.0">
+  <meta charset="UTF-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+<meta name="theme-color" content="#fff">
+
+
+
+  
+  
+    
+    
+  <script src="/lib/pace/pace.min.js?v=1.0.2"></script>
+  <link href="/lib/pace/pace-theme-minimal.min.css?v=1.0.2" rel="stylesheet">
+
+
+
+
+
+
+
+<meta http-equiv="Cache-Control" content="no-transform">
+<meta http-equiv="Cache-Control" content="no-siteapp">
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+  <link href="/lib/fancybox/source/jquery.fancybox.css?v=2.1.5" rel="stylesheet" type="text/css">
+
+
+
+
+
+
+
+<link href="/lib/font-awesome/css/font-awesome.min.css?v=4.6.2" rel="stylesheet" type="text/css">
+
+<link href="/css/main.css?v=5.1.4" rel="stylesheet" type="text/css">
+
+
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png?v=5.1.4">
+
+
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png?v=5.1.4">
+
+
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png?v=5.1.4">
+
+
+  <link rel="mask-icon" href="/images/logo.svg?v=5.1.4" color="#fff">
+
+
+
+
+
+  <meta name="keywords" content="STL,hashtable,">
+
+
+
+
+
+  <link rel="alternate" href="/atom.xml" title="Ersheng" type="application/atom+xml">
+
+
+
+
+
+
+<meta name="description" content="1. hashtable概述 hashtable，即我们在数据结构中所说的散列表，也叫哈希表，在插入、删除、搜寻等操作上具有“常数平均时间”的表现，而且这种表现是以统计为基础，不需仰赖输入元素的随机性 使用hash function将某一元素映射为一个“大小可接受的索引”，通过该索引找到在array中的位置，从而构成一个hashtable；使用hash function可能带来一个问题：即不同的元">
+<meta name="keywords" content="STL,hashtable">
+<meta property="og:type" content="article">
+<meta property="og:title" content="STL源码剖析（五）hashtable">
+<meta property="og:url" content="http://yoursite.com/2018/12/02/STL源码剖析（五）hashtable/index.html">
+<meta property="og:site_name" content="Ersheng">
+<meta property="og:description" content="1. hashtable概述 hashtable，即我们在数据结构中所说的散列表，也叫哈希表，在插入、删除、搜寻等操作上具有“常数平均时间”的表现，而且这种表现是以统计为基础，不需仰赖输入元素的随机性 使用hash function将某一元素映射为一个“大小可接受的索引”，通过该索引找到在array中的位置，从而构成一个hashtable；使用hash function可能带来一个问题：即不同的元">
+<meta property="og:locale" content="zh-Hans">
+<meta property="og:image" content="https://img-blog.csdnimg.cn/20181201200731297.jpg?x-oss-process=image/watermark,type_ZmFuZ3poZW5naGVpdGk,shadow_10,text_aHR0cHM6Ly9ibG9nLmNzZG4ubmV0L3FxXzM4NzkwNzE2,size_16,color_FFFFFF,t_70">
+<meta property="og:updated_time" content="2018-12-01T17:29:49.461Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="STL源码剖析（五）hashtable">
+<meta name="twitter:description" content="1. hashtable概述 hashtable，即我们在数据结构中所说的散列表，也叫哈希表，在插入、删除、搜寻等操作上具有“常数平均时间”的表现，而且这种表现是以统计为基础，不需仰赖输入元素的随机性 使用hash function将某一元素映射为一个“大小可接受的索引”，通过该索引找到在array中的位置，从而构成一个hashtable；使用hash function可能带来一个问题：即不同的元">
+<meta name="twitter:image" content="https://img-blog.csdnimg.cn/20181201200731297.jpg?x-oss-process=image/watermark,type_ZmFuZ3poZW5naGVpdGk,shadow_10,text_aHR0cHM6Ly9ibG9nLmNzZG4ubmV0L3FxXzM4NzkwNzE2,size_16,color_FFFFFF,t_70">
+
+
+
+<script type="text/javascript" id="hexo.configurations">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    root: '/',
+    scheme: 'Muse',
+    version: '5.1.4',
+    sidebar: {"position":"left","display":"hide","offset":12,"b2t":true,"scrollpercent":true,"onmobile":true},
+    fancybox: true,
+    tabs: true,
+    motion: {"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},
+    duoshuo: {
+      userId: '0',
+      author: '博主'
+    },
+    algolia: {
+      applicationID: '',
+      apiKey: '',
+      indexName: '',
+      hits: {"per_page":10},
+      labels: {"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}
+    }
+  };
+</script>
+
+
+
+  <link rel="canonical" href="http://yoursite.com/2018/12/02/STL源码剖析（五）hashtable/">
+
+
+
+
+
+  <title>STL源码剖析（五）hashtable | Ersheng</title>
+  
+
+
+
+
+
+
+
+
+  
+
+</head>
+
+<body itemscope="" itemtype="http://schema.org/WebPage" lang="zh-Hans">
+
+  
+  
+    
+  
+
+  <div class="container sidebar-position-left page-post-detail">
+    <div class="headband"></div>
+
+	<a href="https://github.com/ershengaaa" class="github-corner" aria-label="View source on GitHub"><svg width="80" height="80" viewbox="0 0 250 250" style="fill:#151513; color:#fff; position: absolute; top: 0; border: 0; right: 0;" aria-hidden="true"><path d="M0,0 L115,115 L130,115 L142,142 L250,250 L250,0 Z"/><path d="M128.3,109.0 C113.8,99.7 119.0,89.6 119.0,89.6 C122.0,82.7 120.5,78.6 120.5,78.6 C119.2,72.0 123.4,76.3 123.4,76.3 C127.3,80.9 125.5,87.3 125.5,87.3 C122.9,97.6 130.6,101.9 134.4,103.2" fill="currentColor" style="transform-origin: 130px 106px;" class="octo-arm"/><path d="M115.0,115.0 C114.9,115.1 118.7,116.5 119.8,115.4 L133.7,101.6 C136.9,99.2 139.9,98.4 142.2,98.6 C133.8,88.0 127.5,74.4 143.8,58.0 C148.5,53.4 154.0,51.2 159.7,51.0 C160.3,49.4 163.2,43.6 171.4,40.1 C171.4,40.1 176.1,42.5 178.8,56.2 C183.1,58.6 187.2,61.8 190.9,65.4 C194.5,69.0 197.7,73.2 200.1,77.6 C213.8,80.2 216.3,84.9 216.3,84.9 C212.7,93.1 206.9,96.0 205.4,96.6 C205.1,102.4 203.0,107.8 198.3,112.5 C181.9,128.9 168.3,122.5 157.7,114.1 C157.9,116.9 156.7,120.9 152.7,124.9 L141.0,136.5 C139.8,137.7 141.6,141.9 141.8,141.8 Z" fill="currentColor" class="octo-body"/></svg></a><style>.github-corner:hover .octo-arm{animation:octocat-wave 560ms ease-in-out}@keyframes octocat-wave{0%,100%{transform:rotate(0)}20%,60%{transform:rotate(-25deg)}40%,80%{transform:rotate(10deg)}}@media (max-width:500px){.github-corner:hover .octo-arm{animation:none}.github-corner .octo-arm{animation:octocat-wave 560ms ease-in-out}}</style>
+    <header id="header" class="header" itemscope="" itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-wrapper">
+  <div class="site-meta ">
+    
+
+    <div class="custom-logo-site-title">
+      <a href="/" class="brand" rel="start">
+        <span class="logo-line-before"><i></i></span>
+        <span class="site-title">Ersheng</span>
+        <span class="logo-line-after"><i></i></span>
+      </a>
+    </div>
+      
+        <p class="site-subtitle">No accumulation, no miles</p>
+      
+  </div>
+
+  <div class="site-nav-toggle">
+    <button>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+    </button>
+  </div>
+</div>
+
+<nav class="site-nav">
+  
+
+  
+    <ul id="menu" class="menu">
+      
+        
+        <li class="menu-item menu-item-home">
+          <a href="/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-home"></i> <br>
+            
+            首页
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-about">
+          <a href="/about/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-user"></i> <br>
+            
+            关于
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-tags">
+          <a href="/tags/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-tags"></i> <br>
+            
+            标签
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-categories">
+          <a href="/categories/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-th"></i> <br>
+            
+            分类
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-archives">
+          <a href="/archives/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-archive"></i> <br>
+            
+            归档
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-top">
+          <a href="/top/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-signal"></i> <br>
+            
+            TopX
+          </a>
+        </li>
+      
+
+      
+        <li class="menu-item menu-item-search">
+          
+            <a href="javascript:;" class="popup-trigger">
+          
+            
+              <i class="menu-item-icon fa fa-search fa-fw"></i> <br>
+            
+            搜索
+          </a>
+        </li>
+      
+    </ul>
+  
+
+  
+    <div class="site-search">
+      
+  <div class="popup search-popup local-search-popup">
+  <div class="local-search-header clearfix">
+    <span class="search-icon">
+      <i class="fa fa-search"></i>
+    </span>
+    <span class="popup-btn-close">
+      <i class="fa fa-times-circle"></i>
+    </span>
+    <div class="local-search-input-wrapper">
+      <input autocomplete="off" placeholder="搜索..." spellcheck="false" type="text" id="local-search-input">
+    </div>
+  </div>
+  <div id="local-search-result"></div>
+</div>
+
+
+
+    </div>
+  
+</nav>
+
+
+
+ </div>
+    </header>
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          <div id="content" class="content">
+            
+
+  <div id="posts" class="posts-expand">
+    
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal" itemscope="" itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2018/12/02/STL源码剖析（五）hashtable/">
+
+    <span hidden itemprop="author" itemscope="" itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="ersheng">
+      <meta itemprop="description" content="">
+      <meta itemprop="image" content="/images/p.jpg">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope="" itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Ersheng">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">STL源码剖析（五）hashtable</h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">发表于</span>
+              
+              <time title="创建于" itemprop="dateCreated datePublished" datetime="2018-12-02T01:20:29+08:00">
+                2018-12-02
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+            <span class="post-category">
+            
+              <span class="post-meta-divider">|</span>
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">分类于</span>
+              
+              
+                <span itemprop="about" itemscope="" itemtype="http://schema.org/Thing">
+                  <a href="/categories/STL/" itemprop="url" rel="index">
+                    <span itemprop="name">STL</span>
+                  </a>
+                </span>
+
+                
+                
+              
+            </span>
+          
+
+          
+            
+              <span class="post-comments-count">
+                <span class="post-meta-divider">|</span>
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-comment-o"></i>
+                </span>
+                <a href="/2018/12/02/STL源码剖析（五）hashtable/#comments" itemprop="discussionUrl">
+                  <span class="post-comments-count valine-comment-count" data-xid="/2018/12/02/STL源码剖析（五）hashtable/" itemprop="commentCount"></span>
+                </a>
+              </span>
+            
+          
+
+          
+          
+             <span id="/2018/12/02/STL源码剖析（五）hashtable/" class="leancloud_visitors" data-flag-title="STL源码剖析（五）hashtable">
+               <span class="post-meta-divider">|</span>
+               <span class="post-meta-item-icon">
+                 <i class="fa fa-eye"></i>
+               </span>
+               
+                 <span class="post-meta-item-text">热度&#58;</span>
+               
+                 <span class="leancloud-visitors-count"></span>
+             </span>
+          
+
+          
+
+          
+            <div class="post-wordcount">
+              
+                
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-file-word-o"></i>
+                </span>
+                
+                  <span class="post-meta-item-text">字数统计&#58;</span>
+                
+                <span title="字数统计">
+                  2.8k
+                </span>
+              
+
+              
+                <span class="post-meta-divider">|</span>
+              
+
+              
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-clock-o"></i>
+                </span>
+                
+                  <span class="post-meta-item-text">阅读时长 &asymp;</span>
+                
+                <span title="阅读时长">
+                  13
+                </span>
+              
+            </div>
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        <h1 id="1-hashtable概述"><a href="#1-hashtable概述" class="headerlink" title="1. hashtable概述"></a>1. hashtable概述</h1><ul>
+<li><code>hashtable</code>，<code>即我们在数据结构中所说的散列表，也叫哈希表，在插入、删除、搜寻等操作上具有“常数平均时间”的表现，而且这种表现是以统计为基础，不需仰赖输入元素的随机性</code></li>
+<li>使用hash function将某一元素映射为一个“大小可接受的索引”，通过该索引找到在array中的位置，从而构成一个hashtable；使用hash function可能带来一个问题：即不同的元素经过hash function的作用被映射到相同的位置，这样就产生了碰撞，我们应该采取什么方法来解决碰撞呢？</li>
+<li><p>解决碰撞的方法有许多，我们在这主要分析三种：    <code>1.线性探测 2.二次探测3.开链法</code></p>
+<a id="more"></a>
+<h2 id="1-1-线性探测"><a href="#1-1-线性探测" class="headerlink" title="1.1 线性探测"></a>1.1 线性探测</h2></li>
+<li><p>1.<code>利用hash function计算出某个元素的插入位置</code></p>
+</li>
+<li>2.<code>若该位置上的空间不可用，则循序往下寻找，直到找到一个可用空间为止</code></li>
+</ul>
+<p>分析线性探测的表现：</p>
+<ul>
+<li><p><code>首先需做两个假设：1）表格足够大    2）每个元素能够独立</code></p>
+</li>
+<li><p><code>在此假设情况下，最坏的情况是线性巡访整个表格，平均情况则是巡访一半表格，可这也与我们期望的常数时间相差甚远</code></p>
+</li>
+<li><p><code>线性探测还可能带来主集团问题，主集团即平均插入成本的成长幅度远高于负载系数的成长幅度</code></p>
+</li>
+</ul>
+<h2 id="1-2-二次探测"><a href="#1-2-二次探测" class="headerlink" title="1.2 二次探测"></a>1.2 二次探测</h2><ul>
+<li>1.<code>利用hash function计算出某个元素的插入位置H</code></li>
+<li>2.<code>若该位置实际上已被使用，则依序尝试H + 1 ^2、H + 2 ^2...H + i ^2，直到发现新空间</code></li>
+</ul>
+<p>分析二次探测：</p>
+<ul>
+<li><code>二次探测是为了消除主集团，但却可能造成次集团：两个元素经hash function计算出来的位置若相同，则插入时所探测的位置也相同，形成某种浪费</code></li>
+</ul>
+<h2 id="1-3-开链法"><a href="#1-3-开链法" class="headerlink" title="1.3 开链法"></a>1.3 开链法</h2><ul>
+<li>1.<code>在每一个表格元素种维护一个list</code></li>
+<li>2.<code>hash function为我们分配某一个list，然后在list上执行元素的插入、搜寻、删除操作</code></li>
+</ul>
+<p>==SGI STL的hashtable正是采用这种做法实现的==</p>
+<h1 id="2-hashtable的桶与节点"><a href="#2-hashtable的桶与节点" class="headerlink" title="2. hashtable的桶与节点"></a>2. hashtable的桶与节点</h1><ul>
+<li>称hashtable表格中的元素为“桶”，是因为表格内的每个单元，涵盖的不只是个节点，甚至可能是<code>一“桶”节点</code></li>
+</ul>
+<p><img src="https://img-blog.csdnimg.cn/20181201200731297.jpg?x-oss-process=image/watermark,type_ZmFuZ3poZW5naGVpdGk,shadow_10,text_aHR0cHM6Ly9ibG9nLmNzZG4ubmV0L3FxXzM4NzkwNzE2,size_16,color_FFFFFF,t_70" alt="在这里插入图片描述"></p>
+<ul>
+<li>hashtable的节点定义：</li>
+</ul>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">template</span> &lt;<span class="class"><span class="keyword">class</span> <span class="title">Value</span>&gt;</span></span><br><span class="line"><span class="class"><span class="title">struct</span> __<span class="title">hashrable_node</span> &#123;</span></span><br><span class="line">	__hashtable_node* next;</span><br><span class="line">	Vlalue val;</span><br><span class="line">&#125;;</span><br></pre></td></tr></table></figure>
+<p>==STL并不以list或slist维护hashtable node，而是以vector制造的bucket来维护，至于为什么用vector，是因为需要动态扩充能力==</p>
+<h1 id="3-hashtable迭代器"><a href="#3-hashtable迭代器" class="headerlink" title="3. hashtable迭代器"></a>3. hashtable迭代器</h1><ul>
+<li>hashtable迭代器的定义（仅部分源代码）：</li>
+</ul>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">template</span> &lt;<span class="class"><span class="keyword">class</span> <span class="title">Value</span>, <span class="title">class</span> <span class="title">Key</span>, <span class="title">class</span> <span class="title">HashFcn</span>, </span></span><br><span class="line"><span class="class">	<span class="title">class</span> <span class="title">ExtractKey</span>, <span class="title">class</span> <span class="title">EqualKey</span>, <span class="title">class</span> <span class="title">Alloc</span>&gt;</span></span><br><span class="line"><span class="class"><span class="title">struct</span> __<span class="title">hashtable_iterator</span> &#123;</span></span><br><span class="line">	<span class="comment">//...</span></span><br><span class="line">	<span class="keyword">typedef</span> __hashtable_node &lt;Value&gt; node;</span><br><span class="line">	<span class="keyword">typedef</span> forward_iterator_tag  iterator_category;  <span class="comment">//hashtable没有后退操作</span></span><br><span class="line">	<span class="comment">//...</span></span><br><span class="line">	node* cur;   <span class="comment">//迭代器所指节点</span></span><br><span class="line">	hashtable* ht;  <span class="comment">//连接容器</span></span><br><span class="line">	</span><br><span class="line">	<span class="comment">//构造函数</span></span><br><span class="line">	__hashtable_iterator(node* n, hashtable* tab) : cur(n), ht(tab)  &#123;&#125;</span><br><span class="line">	__hashtable_iterator() &#123;&#125;</span><br><span class="line">	<span class="comment">//取值</span></span><br><span class="line">	reference <span class="keyword">operator</span>*()  <span class="keyword">const</span> &#123; <span class="keyword">return</span> cur-&gt;val;  &#125;</span><br><span class="line">	pointer  <span class="keyword">operator</span>-&gt;()  <span class="keyword">const</span>  &#123; <span class="keyword">return</span> &amp;(<span class="keyword">operator</span>*()); &#125;</span><br><span class="line">	<span class="comment">//迭代器递增操作</span></span><br><span class="line">	iterator&amp;  <span class="keyword">operator</span>++();</span><br><span class="line">	iterator  <span class="keyword">operator</span>++(<span class="keyword">int</span>);</span><br><span class="line">	<span class="comment">//判断迭代器是否相等</span></span><br><span class="line">	<span class="keyword">bool</span> <span class="keyword">operator</span>==(<span class="keyword">const</span> iterator&amp; it) <span class="keyword">const</span>  &#123; <span class="keyword">return</span> cur == it.cur; &#125;</span><br><span class="line">	<span class="keyword">bool</span> <span class="keyword">operator</span>!=(<span class="keyword">const</span> iterator&amp;  it)  <span class="keyword">const</span>  &#123; <span class="keyword">return</span> cur!= it.cur; &#125;</span><br><span class="line">&#125;;</span><br><span class="line"></span><br><span class="line"><span class="comment">//递增操作实现</span></span><br><span class="line"><span class="keyword">template</span> &lt;<span class="class"><span class="keyword">class</span> <span class="title">V</span>, <span class="title">class</span> <span class="title">K</span>, <span class="title">class</span> <span class="title">HF</span>, <span class="title">class</span> <span class="title">ExK</span>, <span class="title">class</span> <span class="title">EqK</span>, <span class="title">class</span> <span class="title">A</span>&gt;</span></span><br><span class="line"><span class="class">__<span class="title">hashtable_iterator</span>&lt;V, K, HF, ExK, EqK, A&gt;&amp;</span></span><br><span class="line"><span class="class">__<span class="title">hashtable_iterator</span>&lt;V, K, HF, ExK, EqK, A&gt;:</span>:<span class="keyword">operator</span>++()</span><br><span class="line">&#123;</span><br><span class="line">	<span class="keyword">const</span> node* old = cur;</span><br><span class="line">	cur = cur-&gt;next;  <span class="comment">//如果存在节点则就是该cur，不存在节点则进入if流程，找到下一个bucket</span></span><br><span class="line">	<span class="keyword">if</span> (!cur) &#123;  </span><br><span class="line">		size_type bucket = ht-&gt;bkt_num(old-&gt;val);   <span class="comment">//找到当前值所对应的桶</span></span><br><span class="line">		<span class="keyword">while</span> (!cur &amp;&amp; ++ bucket &lt; ht-&gt;buckets.size())</span><br><span class="line">			cur = ht-&gt;buckets[bucket];  <span class="comment">//令cur指向下一个bucket</span></span><br><span class="line">	&#125;</span><br><span class="line">	<span class="keyword">return</span> *<span class="keyword">this</span>;</span><br><span class="line">&#125;</span><br><span class="line"><span class="keyword">template</span> &lt;<span class="class"><span class="keyword">class</span> <span class="title">V</span>, <span class="title">class</span> <span class="title">K</span>, <span class="title">class</span> <span class="title">HF</span>, <span class="title">class</span> <span class="title">ExK</span>, <span class="title">class</span> <span class="title">EqK</span>, <span class="title">class</span> <span class="title">A</span>&gt;</span></span><br><span class="line"><span class="class">__<span class="title">hashtable_iterator</span>&lt;V, K, HF, ExK, EqK, A&gt;&amp;</span></span><br><span class="line"><span class="class">__<span class="title">hashtable_iterator</span>&lt;V, K, HF, ExK, EqK, A&gt;:</span>:<span class="keyword">operator</span>++(<span class="keyword">int</span>)</span><br><span class="line">&#123;</span><br><span class="line">	iterator tmp = *<span class="keyword">this</span>;</span><br><span class="line">	++*<span class="keyword">this</span>;</span><br><span class="line">	<span class="keyword">return</span> tmp;</span><br><span class="line">&#123;</span><br></pre></td></tr></table></figure>
+<h1 id="4-hashtable数据结构"><a href="#4-hashtable数据结构" class="headerlink" title="4. hashtable数据结构"></a>4. hashtable数据结构</h1><ul>
+<li>在下面定义中，可以看到<code>buckets聚合体</code>以vector完成：</li>
+</ul>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">template</span> &lt;<span class="class"><span class="keyword">class</span> <span class="title">Value</span>, <span class="title">class</span> <span class="title">Key</span>, <span class="title">class</span> <span class="title">HashFcn</span>, </span></span><br><span class="line"><span class="class">	<span class="title">class</span> <span class="title">ExtractKey</span>, <span class="title">class</span> <span class="title">EqualKey</span>, <span class="title">class</span> <span class="title">Alloc</span>&gt;</span></span><br><span class="line"><span class="class"><span class="title">class</span> <span class="title">hashtable</span> &#123;</span></span><br><span class="line"><span class="keyword">public</span>:</span><br><span class="line">	<span class="keyword">typedef</span> HashFcn hasher;</span><br><span class="line">	<span class="keyword">typedef</span> EqualKey  key_equal;</span><br><span class="line">	<span class="keyword">typedef</span> <span class="keyword">size_t</span>  size_type;</span><br><span class="line"><span class="keyword">private</span>:</span><br><span class="line">	hasher hash;</span><br><span class="line">	key_equal equals;</span><br><span class="line">	ExtractKey  get_key;</span><br><span class="line"></span><br><span class="line">	<span class="keyword">typedef</span> __hashtable_node&lt;Value&gt; node;</span><br><span class="line">	<span class="keyword">typedef</span> simple_allloc&lt;node, Alloc&gt; node_allocator;</span><br><span class="line">	<span class="built_in">vector</span>&lt;node*, Allloc&gt; buckets;    <span class="comment">//以buckets维护节点</span></span><br><span class="line">	size_type num_elements;     <span class="comment">//节点个数</span></span><br><span class="line"><span class="keyword">public</span>:</span><br><span class="line">	<span class="function">size_type <span class="title">bucket_count</span><span class="params">()</span>  <span class="keyword">const</span>  </span>&#123; <span class="keyword">return</span> buckets.size(); &#125;</span><br><span class="line">	...</span><br><span class="line">&#125;;</span><br><span class="line"></span><br><span class="line"></span><br><span class="line">value：节点的实值型别</span><br><span class="line">Key：节点的键值型别</span><br><span class="line">HashFcn：hashfunction的函数型别</span><br><span class="line">ExtractKey：从节点中取出键值的方法</span><br><span class="line">E权力Key： 判断键值相同与否的方法</span><br><span class="line">Alloc：空间配置器</span><br></pre></td></tr></table></figure>
+<ul>
+<li><code>SGI STL以质数来设计表格大小，并且先将28个质数计算好，已备随时访问，同时提供一个函数，用来查询在这28个函数中“最接近并大于或等于n的那个质数”</code>：</li>
+</ul>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">static</span> <span class="keyword">const</span> <span class="keyword">int</span> __stl_num_primes = <span class="number">28</span>;</span><br><span class="line"><span class="keyword">static</span> <span class="keyword">const</span> <span class="keyword">unsigned</span> <span class="keyword">long</span> __stl_prime_list[__stl_num_primes] = </span><br><span class="line">&#123;</span><br><span class="line">	<span class="number">53</span>,		<span class="number">97</span>,		<span class="number">193</span>,	<span class="number">389</span>,	<span class="number">769</span>,</span><br><span class="line">	<span class="number">1543</span>,	<span class="number">3079</span>,	<span class="number">6151</span>,	<span class="number">12289</span>,	<span class="number">24593</span>,</span><br><span class="line">	<span class="number">49157</span>,	<span class="number">98317</span>,	<span class="number">196613</span>,	<span class="number">393241</span>,	<span class="number">786433</span>,</span><br><span class="line">	<span class="number">1572869</span>,	<span class="number">3145739</span>,	<span class="number">6291469</span>,	<span class="number">12582917</span>,	<span class="number">25165843</span>,</span><br><span class="line">	<span class="number">50331653</span>,	<span class="number">100663319</span>,	<span class="number">201326611</span>,	<span class="number">402653189</span>,	<span class="number">805306457</span>,</span><br><span class="line">	<span class="number">16110612741</span>,	<span class="number">3221225473u</span>l,	<span class="number">4294967291u</span>l</span><br><span class="line">&#125;;</span><br><span class="line"><span class="comment">//在28个质数中找出最接近并大于或等于n的质数</span></span><br><span class="line"><span class="keyword">inline</span> <span class="keyword">unsigned</span> <span class="keyword">long</span> __stl_next_prime(<span class="keyword">unsigned</span> <span class="keyword">long</span> n)</span><br><span class="line">&#123;</span><br><span class="line">	<span class="keyword">const</span> <span class="keyword">unsigned</span> <span class="keyword">long</span>* first = __stl_prime_list;</span><br><span class="line">	<span class="keyword">const</span> <span class="keyword">unsigned</span> <span class="keyword">long</span>* last = __stl_prime_list + __stl_num_primes;</span><br><span class="line">	<span class="keyword">const</span> <span class="keyword">unsigned</span> <span class="keyword">long</span>* pos = lower_bound(first, last, n);</span><br><span class="line">	<span class="keyword">return</span> pos == last ? *(last<span class="number">-1</span>): *pos;</span><br><span class="line">&#125;</span><br><span class="line"><span class="comment">//最大buckets数</span></span><br><span class="line"><span class="function">size_type <span class="title">max_bucket_count</span><span class="params">()</span> <span class="keyword">const</span> </span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">	<span class="keyword">return</span> __stl_prime_list[__stl_num_primes - <span class="number">1</span>];  &#125;</span><br></pre></td></tr></table></figure>
+<h1 id="5-hashtable构造与内存管理"><a href="#5-hashtable构造与内存管理" class="headerlink" title="5. hashtable构造与内存管理"></a>5. hashtable构造与内存管理</h1><ul>
+<li>节点配置与节点释放函数：</li>
+</ul>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br></pre></td><td class="code"><pre><span class="line"><span class="function">node* <span class="title">new_node</span><span class="params">(<span class="keyword">const</span> value_type&amp; obj)</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">	node* n = node_allocator::allocate();</span><br><span class="line">	n-&gt;next = <span class="number">0</span>;</span><br><span class="line">	__STL_TRY &#123;</span><br><span class="line">		construct(&amp;n-&gt;val, obj);</span><br><span class="line">		<span class="keyword">return</span> n;</span><br><span class="line">	&#125;</span><br><span class="line">	__STL_UNWIND(node_allocator::deallocate(n));</span><br><span class="line">&#125;</span><br><span class="line"><span class="function"><span class="keyword">void</span> <span class="title">delete_node</span><span class="params">(node* n)</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">	destroy(&amp;n-&gt;val);</span><br><span class="line">	node_alllocaor::deallocate(n);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<ul>
+<li>hashtable构造：</li>
+</ul>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line">hashtable(size_type n, <span class="keyword">const</span> HashFcn&amp; hf, <span class="keyword">const</span> EqualKey&amp; eql)</span><br><span class="line">	: hash(hf), equals(eql), get_key(ExtractKey()), num_elements(<span class="number">0</span>)</span><br><span class="line">&#123;</span><br><span class="line">	initialize_buckets(n);</span><br><span class="line">&#125;</span><br><span class="line"><span class="function"><span class="keyword">void</span> <span class="title">initialize_buckets</span><span class="params">(size_type n)</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">	buckets.reserve(n_bckets);</span><br><span class="line">	buckets.insert(buckets.end(), n_buckets, (node*) <span class="number">0</span>);</span><br><span class="line">	num_elements = <span class="number">0</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<ul>
+<li>插入元素：分为两种，insert_unique与insert_equal</li>
+</ul>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br><span class="line">75</span><br><span class="line">76</span><br><span class="line">77</span><br><span class="line">78</span><br><span class="line">79</span><br><span class="line">80</span><br><span class="line">81</span><br><span class="line">82</span><br><span class="line">83</span><br><span class="line">84</span><br><span class="line">85</span><br><span class="line">86</span><br><span class="line">87</span><br><span class="line">88</span><br><span class="line">89</span><br><span class="line">90</span><br><span class="line">91</span><br><span class="line">92</span><br><span class="line">93</span><br><span class="line">94</span><br><span class="line">95</span><br><span class="line">96</span><br><span class="line">97</span><br><span class="line">98</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// 插入操作,不允许重复</span></span><br><span class="line">  pair&lt;iterator, <span class="keyword">bool</span>&gt; insert_unique(<span class="keyword">const</span> value_type&amp; obj)</span><br><span class="line">  &#123;</span><br><span class="line">   	  resize(num_elements + <span class="number">1</span>);</span><br><span class="line">  	  <span class="keyword">return</span> insert_unique_noresize(obj);</span><br><span class="line">  &#125;</span><br><span class="line"></span><br><span class="line"><span class="keyword">template</span> &lt;<span class="class"><span class="keyword">class</span> _<span class="title">Val</span>, <span class="title">class</span> _<span class="title">Key</span>, <span class="title">class</span> _<span class="title">HF</span>, <span class="title">class</span> _<span class="title">Ex</span>, <span class="title">class</span> _<span class="title">Eq</span>, <span class="title">class</span> _<span class="title">All</span>&gt;</span></span><br><span class="line"><span class="class"><span class="title">pair</span>&lt;typename hashtable&lt;_Val,_Key,_HF,_Ex,_Eq,_All&gt;::iterator, bool&gt;</span></span><br><span class="line"><span class="class"><span class="title">hashtable</span>&lt;_Val,_Key,_HF,_Ex,_Eq,_All&gt;</span></span><br><span class="line"><span class="class">  :</span>:insert_unique_noresize(<span class="keyword">const</span> value_type&amp; obj)</span><br><span class="line">&#123;</span><br><span class="line"> 	  <span class="keyword">const</span>  size_type  n = bkt_num(obj);</span><br><span class="line">	  node*  first = buckets[n];</span><br><span class="line"> </span><br><span class="line">  <span class="comment">// 如果已经存在则直接返回</span></span><br><span class="line">  <span class="keyword">for</span> (node* cur = first; cur;  cur = cur-&gt;_next)</span><br><span class="line">    	<span class="keyword">if</span> (equals(get_key(cur-&gt;val), get_key(obj)))</span><br><span class="line">    		  <span class="keyword">return</span> pair&lt;iterator, <span class="keyword">bool</span>&gt;(iterator(cur, <span class="keyword">this</span>), <span class="literal">false</span>);</span><br><span class="line"> </span><br><span class="line">  <span class="comment">// 插入新节点</span></span><br><span class="line">	 node* tmp = new_node(obj);  <span class="comment">//产生新节点</span></span><br><span class="line">  	 tmp-&gt;next = first;        <span class="comment">//将新节点插入链表头部</span></span><br><span class="line">  	 buckets[n] = tmp;</span><br><span class="line"> 	 ++num_elements;      <span class="comment">//节点个数累计加1</span></span><br><span class="line">  	 <span class="keyword">return</span> pair&lt;iterator, <span class="keyword">bool</span>&gt;(iterator(tmp, <span class="keyword">this</span>), <span class="literal">true</span>); <span class="comment">///返回一个迭代器，指向新增节点</span></span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"></span><br><span class="line"> <span class="comment">//插入操作，允许重复</span></span><br><span class="line">  <span class="function">iterator <span class="title">insert_equal</span><span class="params">(<span class="keyword">const</span> value_type&amp; obj)</span></span></span><br><span class="line"><span class="function">  </span>&#123;</span><br><span class="line">   	    resize(num_elements + <span class="number">1</span>);</span><br><span class="line">    	<span class="keyword">return</span> insert_equal_noresize(obj);</span><br><span class="line">  &#125;</span><br><span class="line"><span class="keyword">template</span> &lt;<span class="class"><span class="keyword">class</span> _<span class="title">Val</span>, <span class="title">class</span> _<span class="title">Key</span>, <span class="title">class</span> _<span class="title">HF</span>, <span class="title">class</span> _<span class="title">Ex</span>, <span class="title">class</span> _<span class="title">Eq</span>, <span class="title">class</span> _<span class="title">All</span>&gt;</span></span><br><span class="line"><span class="class"><span class="title">pair</span>&lt;typename hashtable&lt;_Val,_Key,_HF,_Ex,_Eq,_All&gt;::iterator, bool&gt;</span></span><br><span class="line"><span class="class"><span class="title">hashtable</span>&lt;_Val,_Key,_HF,_Ex,_Eq,_All&gt;</span></span><br><span class="line"><span class="class">  :</span>:insert_equal_noresize(<span class="keyword">const</span> value_type&amp; obj)</span><br><span class="line">&#123;</span><br><span class="line"> 	  <span class="keyword">const</span>  size_type  n = bkt_num(obj);</span><br><span class="line">	  node*  first = buckets[n];</span><br><span class="line"> </span><br><span class="line">  <span class="comment">// 如果已经存在则直接插入并返回</span></span><br><span class="line">  <span class="keyword">for</span> (node* cur = first; cur;  cur = cur-&gt;_next)</span><br><span class="line">    	<span class="keyword">if</span> (equals(get_key(cur-&gt;val), get_key(obj))) &#123;</span><br><span class="line">    		 node* tmp = new_node(obj);  <span class="comment">//产生新节点</span></span><br><span class="line">  			 tmp-&gt;next = first;        <span class="comment">//将新节点插入链表头部</span></span><br><span class="line">  			 buckets[n] = tmp;</span><br><span class="line"> 			 ++num_elements;      <span class="comment">//节点个数累计加1</span></span><br><span class="line">  			 <span class="keyword">return</span> pair&lt;iterator, <span class="keyword">bool</span>&gt;(iterator(tmp, <span class="keyword">this</span>), <span class="literal">true</span>); <span class="comment">///返回一个迭代器，指向新增节点</span></span><br><span class="line"> 		&#125;</span><br><span class="line">    		  </span><br><span class="line"> </span><br><span class="line">  <span class="comment">// 表示没有发现新节点</span></span><br><span class="line">	 node* tmp = new_node(obj);  <span class="comment">//产生新节点</span></span><br><span class="line">  	 tmp-&gt;next = first;        <span class="comment">//将新节点插入链表头部</span></span><br><span class="line">  	 buckets[n] = tmp;</span><br><span class="line"> 	 ++num_elements;      <span class="comment">//节点个数累计加1</span></span><br><span class="line">  	 <span class="keyword">return</span> pair&lt;iterator, <span class="keyword">bool</span>&gt;(iterator(tmp, <span class="keyword">this</span>), <span class="literal">true</span>); <span class="comment">///返回一个迭代器，指向新增节点</span></span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"></span><br><span class="line"><span class="comment">//判断是否需要重建表格</span></span><br><span class="line"><span class="keyword">template</span> &lt;<span class="class"><span class="keyword">class</span> _<span class="title">Val</span>, <span class="title">class</span> _<span class="title">Key</span>, <span class="title">class</span> _<span class="title">HF</span>, <span class="title">class</span> _<span class="title">Ex</span>, <span class="title">class</span> _<span class="title">Eq</span>, <span class="title">class</span> _<span class="title">All</span>&gt;</span></span><br><span class="line"><span class="class"><span class="title">void</span> <span class="title">hashtable</span>&lt;_Val,_Key,_HF,_Ex,_Eq,_All&gt;</span></span><br><span class="line"><span class="class">  :</span>:resize(size_type num_elements_hint)</span><br><span class="line">&#123;</span><br><span class="line"> 	 <span class="keyword">const</span> size_type old_n = buckets.size();</span><br><span class="line"> 	 <span class="comment">// 超过原来表格的大小时才进行调整</span></span><br><span class="line">  	 <span class="keyword">if</span> (__num_elements_hint &gt; old_n) &#123;</span><br><span class="line">    		<span class="comment">// 新的表格大小</span></span><br><span class="line">   		 <span class="keyword">const</span> size_type  n = next_size(num_elements_hint);</span><br><span class="line"> 		   <span class="comment">// 在边界情况下可能无法调整(没有更大的素数了)</span></span><br><span class="line">   		 <span class="keyword">if</span> (n &gt; old_n) &#123;</span><br><span class="line">      		<span class="built_in">vector</span>&lt;node*, All&gt; tmp(n, (node*)(<span class="number">0</span>),</span><br><span class="line">     	    __STL_TRY &#123;</span><br><span class="line">       	 <span class="comment">// 填充新的表格</span></span><br><span class="line">     		   <span class="keyword">for</span> (size_type bucket = <span class="number">0</span>;bucket &lt; old_n; ++bucket) &#123;</span><br><span class="line">     	     		  node* first = buckets[bucket];  <span class="comment">//指向节点所对应的起始节点</span></span><br><span class="line">       	       		  <span class="keyword">while</span> (first) &#123;</span><br><span class="line">       	       		  			<span class="comment">//以下找出节点落在哪一个新bucket内</span></span><br><span class="line">             				   size_type __new_bucket = bkt_num(first-&gt;val, n);</span><br><span class="line">             				   	<span class="comment">//令旧节点指向对应串行的下一个节点</span></span><br><span class="line">         					   buckets[bucket] = first-&gt;next;</span><br><span class="line">         					   <span class="comment">//将当前节点插入到新bucket内</span></span><br><span class="line">          				       first-&gt;next = tmp[new_bucket];</span><br><span class="line">               				   tmp[new_bucket] = first;</span><br><span class="line">               				   <span class="comment">//准备处理下一个节点</span></span><br><span class="line">          	   				   first = buckets[bucket];</span><br><span class="line">       				   &#125;</span><br><span class="line">     		  &#125;</span><br><span class="line">        <span class="comment">// 通过swap交换</span></span><br><span class="line">  	      buckets.swap(tmp); </span><br><span class="line">     	   &#125;</span><br><span class="line">   	   &#125;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<ul>
+<li>判知元素的落脚处：</li>
+</ul>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line"><span class="function">size_type <span class="title">bkt_num</span><span class="params">(<span class="keyword">const</span> value_type&amp; obj, <span class="keyword">size_t</span> n)</span>  <span class="keyword">const</span> </span>&#123;</span><br><span class="line">	<span class="keyword">return</span> bkt_num_key(get_key(obj), n);</span><br><span class="line">&#125;</span><br><span class="line"><span class="function">size_type <span class="title">bkt_num</span><span class="params">(<span class="keyword">const</span> value_type&amp; obj)</span>  <span class="keyword">const</span> </span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">	<span class="keyword">return</span> bkt_num_key(get_key(obj));</span><br><span class="line">&#125;</span><br><span class="line"><span class="function">size_type <span class="title">bkt_num_key</span><span class="params">(<span class="keyword">const</span> value_type&amp; key)</span>  <span class="keyword">const</span> </span>&#123;</span><br><span class="line">	<span class="keyword">return</span> bkt_num_key(key, buckets.size());</span><br><span class="line">&#125;</span><br><span class="line"><span class="function">size_type <span class="title">bkt_num_key</span><span class="params">(<span class="keyword">const</span> value_type&amp; key,<span class="keyword">szie_t</span> n)</span>  <span class="keyword">const</span> </span>&#123;</span><br><span class="line">	<span class="keyword">return</span> hash(key) % n;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<h1 id="6-元素操作"><a href="#6-元素操作" class="headerlink" title="6. 元素操作"></a>6. 元素操作</h1><table>
+<thead>
+<tr>
+<th>操作</th>
+<th>功能</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>copy_from</td>
+<td>复制整个hashtable</td>
+</tr>
+<tr>
+<td>clear</td>
+<td>hashtable整体删除</td>
+</tr>
+<tr>
+<td>find</td>
+<td>搜寻键值为key的元素</td>
+</tr>
+<tr>
+<td>count</td>
+<td>计算键值为key的元素个数</td>
+</tr>
+</tbody>
+</table>
+<ul>
+<li>一个实例：</li>
+</ul>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">&lt;iostream&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">&lt;hash_set&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">&lt;algorithm&gt;</span></span></span><br><span class="line"><span class="keyword">using</span> <span class="keyword">namespace</span> <span class="built_in">std</span>;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">int</span> <span class="title">main</span><span class="params">()</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">	<span class="comment">//指定保留50个buckets</span></span><br><span class="line">	hashtable&lt;<span class="keyword">int</span>, <span class="keyword">int</span>, hash&lt;<span class="keyword">int</span>&gt;, </span><br><span class="line">	identify&lt;<span class="keyword">int</span>&gt;, equal_to&lt;<span class="keyword">int</span>&gt;, alloc&gt;  iht(<span class="number">50</span>, hash&lt;<span class="keyword">int</span>&gt;(), equal_to&lt;iny&gt;());</span><br><span class="line">	</span><br><span class="line">	<span class="built_in">cout</span> &lt;&lt; iht.size() &lt;&lt; <span class="built_in">endl</span>; <span class="comment">//0</span></span><br><span class="line">	<span class="built_in">cout</span> &lt;&lt; iht.bucket_count() &lt;&lt; <span class="built_in">endl</span>;  <span class="comment">//53，满足要求的最小质数</span></span><br><span class="line">	<span class="built_in">cout</span> &lt;&lt; iht.max_bucket_count() &lt;&lt; <span class="built_in">endl</span>; <span class="comment">//4294967291</span></span><br><span class="line">	</span><br><span class="line">	iht.insert_unique(<span class="number">59</span>);</span><br><span class="line">	iht.insert_unique(<span class="number">63</span>);</span><br><span class="line">	iht.insert_unique(<span class="number">108</span>);</span><br><span class="line">	iht.insert_unique(<span class="number">2</span>);</span><br><span class="line">	iht.insert_unique(<span class="number">53</span>);</span><br><span class="line">	iht.insert_unique(<span class="number">55</span>);</span><br><span class="line">	<span class="built_in">cout</span> &lt;&lt; iht.size() &lt;&lt; <span class="built_in">endl</span>;  <span class="comment">//6</span></span><br><span class="line">	</span><br><span class="line">	<span class="comment">//声明迭代器</span></span><br><span class="line">	hashtable&lt;<span class="keyword">int</span>, <span class="keyword">int</span>, hash&lt;<span class="keyword">int</span>&gt;, </span><br><span class="line">	identify&lt;<span class="keyword">int</span>&gt;, equal_to&lt;<span class="keyword">int</span>&gt;, alloc&gt;::iterator  ite = iht.begin();</span><br><span class="line">	<span class="keyword">for</span> (<span class="keyword">int</span>  i = <span class="number">0</span>; i &lt; iht.size(); ++i, ++ite)</span><br><span class="line">		<span class="built_in">cout</span> &lt;&lt; *ite &lt;&lt; <span class="string">' '</span>;  <span class="comment">//53 53 2 108 59 63</span></span><br><span class="line">	<span class="built_in">cout</span> &lt;&lt; <span class="built_in">endl</span>;</span><br><span class="line">		</span><br><span class="line">	<span class="keyword">for</span> (<span class="keyword">int</span>  i = ); i &lt; iht.bucket_count() ; ++i) &#123;</span><br><span class="line">		<span class="keyword">int</span> n = iht.elems_in_bucket(i);</span><br><span class="line">		<span class="keyword">if</span> (n != <span class="number">0</span>)</span><br><span class="line">			<span class="built_in">cout</span> &lt;&lt; <span class="string">"bucket["</span> &lt;&lt; i &lt;&lt; <span class="string">"] has "</span> &lt;&lt; n &lt;&lt; <span class="string">" elems."</span> &lt;&lt; <span class="built_in">endl</span>;</span><br><span class="line">	&#125;</span><br><span class="line">	<span class="comment">//bucket[0] has 1 elems</span></span><br><span class="line">	<span class="comment">//bucket[2] has 3 elems</span></span><br><span class="line">	<span class="comment">//bucket[6] has 1 elems</span></span><br><span class="line">	<span class="comment">//bucket[10] has 1 elems</span></span><br><span class="line">	</span><br><span class="line">	<span class="comment">//插入48个元素</span></span><br><span class="line">	<span class="keyword">for</span> (<span class="keyword">int</span>  i = <span class="number">0</span>; i &lt;= <span class="number">47</span>; ++i)</span><br><span class="line">	&#123;</span><br><span class="line">		iht.insert_equal(i);   </span><br><span class="line">	&#125;</span><br><span class="line">	<span class="built_in">cout</span> &lt;&lt; iht.size() &lt;&lt; <span class="built_in">endl</span>;   <span class="comment">//54</span></span><br><span class="line">	<span class="built_in">cout</span> &lt;&lt; iht.bucket_count() &lt;&lt; <span class="built_in">endl</span>;  <span class="comment">//大于53，更改buckets个数为大于53的质数，97</span></span><br><span class="line">	<span class="keyword">for</span> (<span class="keyword">int</span>  i = <span class="number">0</span>; i &lt; iht.bucket_count(); ++i)&#123;</span><br><span class="line">		<span class="keyword">int</span> n = iht.elems_in_bucket(i);</span><br><span class="line">		<span class="keyword">if</span> (n != <span class="number">0</span>)</span><br><span class="line">			<span class="built_in">cout</span> &lt;&lt; <span class="string">"bucket["</span> &lt;&lt; i &lt;&lt; <span class="string">"] has "</span> &lt;&lt; n &lt;&lt; <span class="string">" elems."</span> &lt;&lt; <span class="built_in">endl</span>;</span><br><span class="line">	&#125;</span><br><span class="line">	<span class="comment">//打印结果：bucket[2]和bucket[11]的节点个数为2</span></span><br><span class="line">	<span class="comment">//其余的bucket[0]~bucket[47]的节点个数为1</span></span><br><span class="line">	<span class="comment">//此外，bucket[53],[55],[59],[63]的节点个数为1</span></span><br><span class="line">	ite = ite.begin();</span><br><span class="line">	<span class="keyword">for</span> (<span class="keyword">int</span>  i = <span class="number">0</span>; i &lt; iht.size(); ++i, ++ite)</span><br><span class="line">		<span class="built_in">cout</span> &lt;&lt; *ite &lt;&lt; <span class="string">' '</span>;</span><br><span class="line">	<span class="built_in">cout</span> &lt;&lt; <span class="built_in">endl</span>;</span><br><span class="line">	<span class="comment">//0 1 2 2 3 4 5 6 7 8 9 10 11 108 12 13 14 15 16 17 18 19 20 21 </span></span><br><span class="line">	<span class="comment">//22 23 24 25 26 27 28 29 30 31 32 33 34 35 36 37 38 39 40 41 42</span></span><br><span class="line">	<span class="comment">//43 44 45 46 47 53 55 59 63</span></span><br><span class="line">	<span class="built_in">cout</span> &lt;&lt; *(ite.find(<span class="number">2</span>)) &lt;&lt; <span class="built_in">endl</span>;  <span class="comment">//2</span></span><br><span class="line">	<span class="built_in">cout</span> &lt;&lt; iht.count(<span class="number">2</span>) &lt;&lt; <span class="built_in">endl</span>;  <span class="comment">//1</span></span><br><span class="line">	<span class="keyword">return</span> <span class="number">0</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>通过上述这个实例，可以对于resize有更深的理解，对于元素操作也能又更好的的理解</p>
+<h1 id="7-hash-functions"><a href="#7-hash-functions" class="headerlink" title="7. hash functions"></a>7. hash functions</h1><p>hash function是计算元素位置的函数，SGI将这项任务交给bkt_num函数，然后再调用下列提供的hash function，取得一个可以对hashtable进行模运算的值</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">template</span> &lt;<span class="class"><span class="keyword">class</span> <span class="title">Key</span>&gt; <span class="title">struct</span> <span class="title">hash</span>&#123;</span>&#125;</span><br><span class="line"><span class="comment">//以下这个转换函数还没看太懂？？？？？</span></span><br><span class="line"><span class="keyword">inline</span> <span class="keyword">size_t</span> __stl_hash_string(<span class="keyword">const</span> <span class="keyword">char</span>* s)</span><br><span class="line">&#123;</span><br><span class="line">	<span class="keyword">unsigned</span> <span class="keyword">long</span> h  = <span class="number">0</span>;</span><br><span class="line">	<span class="keyword">for</span> (; *s; ++s)</span><br><span class="line">		h = <span class="number">5</span>*h + *s;</span><br><span class="line">	<span class="keyword">return</span> <span class="keyword">size_t</span>(h);</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="keyword">template</span> &lt;&gt;</span><br><span class="line">__STL_TEMPLATE_NULL <span class="class"><span class="keyword">struct</span> <span class="title">hash</span>&lt;char*&gt;</span></span><br><span class="line"><span class="class">&#123;</span></span><br><span class="line">	<span class="keyword">size_t</span> <span class="keyword">operator</span>()(<span class="keyword">const</span> <span class="keyword">char</span> *s)  <span class="keyword">const</span> &#123; <span class="keyword">return</span> __stl_hash_string(s); &#125;</span><br><span class="line">&#125;;</span><br><span class="line"><span class="comment">//...</span></span><br></pre></td></tr></table></figure>
+      
+    </div>
+    
+    
+    
+	
+	
+	  <div>
+	     
+   <div>
+        <div style="text-align:center;color: #ccc;font-size:20px;">-------------Thank you for reading-------------</div>
+   </div>
+
+	  </div>
+	
+
+    
+
+    
+
+    
+
+    <footer class="post-footer">
+      
+        <div class="post-tags">
+          
+            <a href="/tags/STL/" rel="tag"><i class="fa fa-tag"></i> STL</a>
+          
+            <a href="/tags/hashtable/" rel="tag"><i class="fa fa-tag"></i> hashtable</a>
+          
+        </div>
+      
+
+      
+      
+      
+
+      
+        <div class="post-nav">
+          <div class="post-nav-next post-nav-item">
+            
+              <a href="/2018/12/02/STL源码剖析（五）【hash-set、hash-map】/" rel="prev" title="STL源码剖析（五）【hash_set、hash_map】">
+                <i class="fa fa-chevron-left"></i> STL源码剖析（五）【hash_set、hash_map】
+              </a>
+            
+          </div>
+
+          <span class="post-nav-divider"></span>
+
+          <div class="post-nav-prev post-nav-item">
+            
+              <a href="/2018/11/30/STL源码剖析（五）关联式容器-【set、multiset、map、multimap】/" rel="next" title=" STL源码剖析（五）关联式容器--【set、multiset、map、multimap】">
+                 STL源码剖析（五）关联式容器--【set、multiset、map、multimap】 <i class="fa fa-chevron-right"></i>
+              </a>
+            
+          </div>
+        </div>
+      
+
+      
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+
+    <div class="post-spread">
+      
+    </div>
+  </div>
+
+
+          </div>
+          
+
+
+          
+
+  
+    <div class="comments" id="comments">
+    </div>
+  
+
+
+
+        </div>
+        
+          
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    
+      <div id="sidebar-dimmer"></div>
+    
+    <div class="sidebar-inner">
+
+      
+
+      
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap">
+            文章目录
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview-wrap">
+            站点概览
+          </li>
+        </ul>
+      
+
+      <section class="site-overview-wrap sidebar-panel">
+        <div class="site-overview">
+          <div class="site-author motion-element" itemprop="author" itemscope="" itemtype="http://schema.org/Person">
+            
+              <img class="site-author-image" itemprop="image" src="/images/p.jpg" alt="ersheng">
+            
+              <p class="site-author-name" itemprop="name">ersheng</p>
+              <p class="site-description motion-element" itemprop="description">a sword, a person</p>
+          </div>
+
+          <nav class="site-state motion-element">
+
+            
+              <div class="site-state-item site-state-posts">
+              
+                <a href="/archives/">
+              
+                  <span class="site-state-item-count">45</span>
+                  <span class="site-state-item-name">日志</span>
+                </a>
+              </div>
+            
+
+            
+              
+              
+              <div class="site-state-item site-state-categories">
+                <a href="/categories/index.html">
+                  <span class="site-state-item-count">9</span>
+                  <span class="site-state-item-name">分类</span>
+                </a>
+              </div>
+            
+
+            
+              
+              
+              <div class="site-state-item site-state-tags">
+                <a href="/tags/index.html">
+                  <span class="site-state-item-count">43</span>
+                  <span class="site-state-item-name">标签</span>
+                </a>
+              </div>
+            
+          </nav>
+
+          
+            <div class="feed-link motion-element">
+              <a href="/atom.xml" rel="alternate">
+                <i class="fa fa-rss"></i>
+                RSS
+              </a>
+            </div>
+          
+
+          
+            <div class="links-of-author motion-element">
+                
+                  <span class="links-of-author-item">
+                    <a href="https://github.com/ershengaaa" target="_blank" title="GitHub">
+                      
+                        <i class="fa fa-fw fa-github"></i>GitHub</a>
+                  </span>
+                
+                  <span class="links-of-author-item">
+                    <a href="https://blog.csdn.net/qq_38790716" target="_blank" title="CSDN">
+                      
+                        <i class="fa fa-fw fa-globe"></i>CSDN</a>
+                  </span>
+                
+            </div>
+          
+
+          
+          
+
+          
+          
+
+          
+
+        </div>
+      </section>
+
+      
+      <!--noindex-->
+        <section class="post-toc-wrap motion-element sidebar-panel sidebar-panel-active">
+          <div class="post-toc">
+
+            
+              
+            
+
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#1-hashtable概述"><span class="nav-number">1.</span> <span class="nav-text">1. hashtable概述</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#1-1-线性探测"><span class="nav-number">1.1.</span> <span class="nav-text">1.1 线性探测</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#1-2-二次探测"><span class="nav-number">1.2.</span> <span class="nav-text">1.2 二次探测</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#1-3-开链法"><span class="nav-number">1.3.</span> <span class="nav-text">1.3 开链法</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#2-hashtable的桶与节点"><span class="nav-number">2.</span> <span class="nav-text">2. hashtable的桶与节点</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#3-hashtable迭代器"><span class="nav-number">3.</span> <span class="nav-text">3. hashtable迭代器</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#4-hashtable数据结构"><span class="nav-number">4.</span> <span class="nav-text">4. hashtable数据结构</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#5-hashtable构造与内存管理"><span class="nav-number">5.</span> <span class="nav-text">5. hashtable构造与内存管理</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#6-元素操作"><span class="nav-number">6.</span> <span class="nav-text">6. 元素操作</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#7-hash-functions"><span class="nav-number">7.</span> <span class="nav-text">7. hash functions</span></a></li></ol></div>
+            
+
+          </div>
+        </section>
+      <!--/noindex-->
+      
+
+      
+        <div class="back-to-top">
+          <i class="fa fa-arrow-up"></i>
+          
+            <span id="scrollpercent"><span>0</span>%</span>
+          
+        </div>
+      
+
+    </div>
+  </aside>
+
+
+        
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <script async src="//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js">
+</script>
+<div class="copyright">&copy; <span itemprop="copyrightYear">2018</span>
+  <span class="with-love" id="heart">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">ersheng</span>
+
+  
+</div>
+
+<p>meet better yourself!</p>   <!--����-->
+<!--
+
+
+
+
+  <div class="theme-info">主题 &mdash; <a class="theme-link" target="_blank" href="https://github.com/iissnan/hexo-theme-next">NexT.Muse</a> v5.1.4</div>
+
+-->
+
+
+
+
+
+        
+<div class="busuanzi-count">
+  <script async src="https://dn-lbstatics.qbox.me/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+
+  
+    <span class="site-uv">
+      <i class="fa fa-user"></i>
+      <span class="busuanzi-value" id="busuanzi_value_site_uv"></span>
+      
+    </span>
+  
+
+  
+    <span class="site-pv">
+      <i class="fa fa-eye"></i>
+      <span class="busuanzi-value" id="busuanzi_value_site_pv"></span>
+      
+    </span>
+  
+</div>
+
+
+
+
+
+
+
+
+        
+      </div>
+    </footer>
+
+    
+
+    
+
+  </div>
+
+  
+
+<script type="text/javascript">
+  if (Object.prototype.toString.call(window.Promise) !== '[object Function]') {
+    window.Promise = null;
+  }
+</script>
+
+
+
+
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+    <script type="text/javascript" src="/lib/jquery/index.js?v=2.1.3"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/fastclick/lib/fastclick.min.js?v=1.0.6"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/jquery_lazyload/jquery.lazyload.js?v=1.9.7"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/velocity/velocity.min.js?v=1.2.1"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/velocity/velocity.ui.min.js?v=1.2.1"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/fancybox/source/jquery.fancybox.pack.js?v=2.1.5"></script>
+  
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/utils.js?v=5.1.4"></script>
+
+  <script type="text/javascript" src="/js/src/motion.js?v=5.1.4"></script>
+
+
+
+  
+  
+
+  
+  <script type="text/javascript" src="/js/src/scrollspy.js?v=5.1.4"></script>
+<script type="text/javascript" src="/js/src/post-details.js?v=5.1.4"></script>
+
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/bootstrap.js?v=5.1.4"></script>
+
+
+
+  
+
+
+  
+
+
+
+
+	
+
+
+
+
+
+  
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+  <script src="//cdn1.lncld.net/static/js/3.0.4/av-min.js"></script>
+  <script src="//unpkg.com/valine/dist/Valine.min.js"></script>
+  
+  <script type="text/javascript">
+    var GUEST = ['nick','mail','link'];
+    var guest = 'nick,mail,link';
+    guest = guest.split(',').filter(item=>{
+      return GUEST.indexOf(item)>-1;
+    });
+    new Valine({
+        el: '#comments' ,
+        verify: false,
+        notify: false,
+        appId: '2xoRk8O4oK5X8x5yQpLdeNMV-gzGzoHsz',
+        appKey: 'arry1O4lSfV4qMmPKqNNvpMz',
+        placeholder: 'just go go',
+        avatar:'mm',
+        guest_info:guest,
+        pageSize:'10' || 10,
+    });
+  </script>
+
+
+
+  
+
+  <script type="text/javascript">
+    // Popup Window;
+    var isfetched = false;
+    var isXml = true;
+    // Search DB path;
+    var search_path = "search.xml";
+    if (search_path.length === 0) {
+      search_path = "search.xml";
+    } else if (/json$/i.test(search_path)) {
+      isXml = false;
+    }
+    var path = "/" + search_path;
+    // monitor main search box;
+
+    var onPopupClose = function (e) {
+      $('.popup').hide();
+      $('#local-search-input').val('');
+      $('.search-result-list').remove();
+      $('#no-result').remove();
+      $(".local-search-pop-overlay").remove();
+      $('body').css('overflow', '');
+    }
+
+    function proceedsearch() {
+      $("body")
+        .append('<div class="search-popup-overlay local-search-pop-overlay"></div>')
+        .css('overflow', 'hidden');
+      $('.search-popup-overlay').click(onPopupClose);
+      $('.popup').toggle();
+      var $localSearchInput = $('#local-search-input');
+      $localSearchInput.attr("autocapitalize", "none");
+      $localSearchInput.attr("autocorrect", "off");
+      $localSearchInput.focus();
+    }
+
+    // search function;
+    var searchFunc = function(path, search_id, content_id) {
+      'use strict';
+
+      // start loading animation
+      $("body")
+        .append('<div class="search-popup-overlay local-search-pop-overlay">' +
+          '<div id="search-loading-icon">' +
+          '<i class="fa fa-spinner fa-pulse fa-5x fa-fw"></i>' +
+          '</div>' +
+          '</div>')
+        .css('overflow', 'hidden');
+      $("#search-loading-icon").css('margin', '20% auto 0 auto').css('text-align', 'center');
+
+      $.ajax({
+        url: path,
+        dataType: isXml ? "xml" : "json",
+        async: true,
+        success: function(res) {
+          // get the contents from search data
+          isfetched = true;
+          $('.popup').detach().appendTo('.header-inner');
+          var datas = isXml ? $("entry", res).map(function() {
+            return {
+              title: $("title", this).text(),
+              content: $("content",this).text(),
+              url: $("url" , this).text()
+            };
+          }).get() : res;
+          var input = document.getElementById(search_id);
+          var resultContent = document.getElementById(content_id);
+          var inputEventFunction = function() {
+            var searchText = input.value.trim().toLowerCase();
+            var keywords = searchText.split(/[\s\-]+/);
+            if (keywords.length > 1) {
+              keywords.push(searchText);
+            }
+            var resultItems = [];
+            if (searchText.length > 0) {
+              // perform local searching
+              datas.forEach(function(data) {
+                var isMatch = false;
+                var hitCount = 0;
+                var searchTextCount = 0;
+                var title = data.title.trim();
+                var titleInLowerCase = title.toLowerCase();
+                var content = data.content.trim().replace(/<[^>]+>/g,"");
+                var contentInLowerCase = content.toLowerCase();
+                var articleUrl = decodeURIComponent(data.url);
+                var indexOfTitle = [];
+                var indexOfContent = [];
+                // only match articles with not empty titles
+                if(title != '') {
+                  keywords.forEach(function(keyword) {
+                    function getIndexByWord(word, text, caseSensitive) {
+                      var wordLen = word.length;
+                      if (wordLen === 0) {
+                        return [];
+                      }
+                      var startPosition = 0, position = [], index = [];
+                      if (!caseSensitive) {
+                        text = text.toLowerCase();
+                        word = word.toLowerCase();
+                      }
+                      while ((position = text.indexOf(word, startPosition)) > -1) {
+                        index.push({position: position, word: word});
+                        startPosition = position + wordLen;
+                      }
+                      return index;
+                    }
+
+                    indexOfTitle = indexOfTitle.concat(getIndexByWord(keyword, titleInLowerCase, false));
+                    indexOfContent = indexOfContent.concat(getIndexByWord(keyword, contentInLowerCase, false));
+                  });
+                  if (indexOfTitle.length > 0 || indexOfContent.length > 0) {
+                    isMatch = true;
+                    hitCount = indexOfTitle.length + indexOfContent.length;
+                  }
+                }
+
+                // show search results
+
+                if (isMatch) {
+                  // sort index by position of keyword
+
+                  [indexOfTitle, indexOfContent].forEach(function (index) {
+                    index.sort(function (itemLeft, itemRight) {
+                      if (itemRight.position !== itemLeft.position) {
+                        return itemRight.position - itemLeft.position;
+                      } else {
+                        return itemLeft.word.length - itemRight.word.length;
+                      }
+                    });
+                  });
+
+                  // merge hits into slices
+
+                  function mergeIntoSlice(text, start, end, index) {
+                    var item = index[index.length - 1];
+                    var position = item.position;
+                    var word = item.word;
+                    var hits = [];
+                    var searchTextCountInSlice = 0;
+                    while (position + word.length <= end && index.length != 0) {
+                      if (word === searchText) {
+                        searchTextCountInSlice++;
+                      }
+                      hits.push({position: position, length: word.length});
+                      var wordEnd = position + word.length;
+
+                      // move to next position of hit
+
+                      index.pop();
+                      while (index.length != 0) {
+                        item = index[index.length - 1];
+                        position = item.position;
+                        word = item.word;
+                        if (wordEnd > position) {
+                          index.pop();
+                        } else {
+                          break;
+                        }
+                      }
+                    }
+                    searchTextCount += searchTextCountInSlice;
+                    return {
+                      hits: hits,
+                      start: start,
+                      end: end,
+                      searchTextCount: searchTextCountInSlice
+                    };
+                  }
+
+                  var slicesOfTitle = [];
+                  if (indexOfTitle.length != 0) {
+                    slicesOfTitle.push(mergeIntoSlice(title, 0, title.length, indexOfTitle));
+                  }
+
+                  var slicesOfContent = [];
+                  while (indexOfContent.length != 0) {
+                    var item = indexOfContent[indexOfContent.length - 1];
+                    var position = item.position;
+                    var word = item.word;
+                    // cut out 100 characters
+                    var start = position - 20;
+                    var end = position + 80;
+                    if(start < 0){
+                      start = 0;
+                    }
+                    if (end < position + word.length) {
+                      end = position + word.length;
+                    }
+                    if(end > content.length){
+                      end = content.length;
+                    }
+                    slicesOfContent.push(mergeIntoSlice(content, start, end, indexOfContent));
+                  }
+
+                  // sort slices in content by search text's count and hits' count
+
+                  slicesOfContent.sort(function (sliceLeft, sliceRight) {
+                    if (sliceLeft.searchTextCount !== sliceRight.searchTextCount) {
+                      return sliceRight.searchTextCount - sliceLeft.searchTextCount;
+                    } else if (sliceLeft.hits.length !== sliceRight.hits.length) {
+                      return sliceRight.hits.length - sliceLeft.hits.length;
+                    } else {
+                      return sliceLeft.start - sliceRight.start;
+                    }
+                  });
+
+                  // select top N slices in content
+
+                  var upperBound = parseInt('1');
+                  if (upperBound >= 0) {
+                    slicesOfContent = slicesOfContent.slice(0, upperBound);
+                  }
+
+                  // highlight title and content
+
+                  function highlightKeyword(text, slice) {
+                    var result = '';
+                    var prevEnd = slice.start;
+                    slice.hits.forEach(function (hit) {
+                      result += text.substring(prevEnd, hit.position);
+                      var end = hit.position + hit.length;
+                      result += '<b class="search-keyword">' + text.substring(hit.position, end) + '</b>';
+                      prevEnd = end;
+                    });
+                    result += text.substring(prevEnd, slice.end);
+                    return result;
+                  }
+
+                  var resultItem = '';
+
+                  if (slicesOfTitle.length != 0) {
+                    resultItem += "<li><a href='" + articleUrl + "' class='search-result-title'>" + highlightKeyword(title, slicesOfTitle[0]) + "</a>";
+                  } else {
+                    resultItem += "<li><a href='" + articleUrl + "' class='search-result-title'>" + title + "</a>";
+                  }
+
+                  slicesOfContent.forEach(function (slice) {
+                    resultItem += "<a href='" + articleUrl + "'>" +
+                      "<p class=\"search-result\">" + highlightKeyword(content, slice) +
+                      "...</p>" + "</a>";
+                  });
+
+                  resultItem += "</li>";
+                  resultItems.push({
+                    item: resultItem,
+                    searchTextCount: searchTextCount,
+                    hitCount: hitCount,
+                    id: resultItems.length
+                  });
+                }
+              })
+            };
+            if (keywords.length === 1 && keywords[0] === "") {
+              resultContent.innerHTML = '<div id="no-result"><i class="fa fa-search fa-5x" /></div>'
+            } else if (resultItems.length === 0) {
+              resultContent.innerHTML = '<div id="no-result"><i class="fa fa-frown-o fa-5x" /></div>'
+            } else {
+              resultItems.sort(function (resultLeft, resultRight) {
+                if (resultLeft.searchTextCount !== resultRight.searchTextCount) {
+                  return resultRight.searchTextCount - resultLeft.searchTextCount;
+                } else if (resultLeft.hitCount !== resultRight.hitCount) {
+                  return resultRight.hitCount - resultLeft.hitCount;
+                } else {
+                  return resultRight.id - resultLeft.id;
+                }
+              });
+              var searchResultList = '<ul class=\"search-result-list\">';
+              resultItems.forEach(function (result) {
+                searchResultList += result.item;
+              })
+              searchResultList += "</ul>";
+              resultContent.innerHTML = searchResultList;
+            }
+          }
+
+          if ('auto' === 'auto') {
+            input.addEventListener('input', inputEventFunction);
+          } else {
+            $('.search-icon').click(inputEventFunction);
+            input.addEventListener('keypress', function (event) {
+              if (event.keyCode === 13) {
+                inputEventFunction();
+              }
+            });
+          }
+
+          // remove loading animation
+          $(".local-search-pop-overlay").remove();
+          $('body').css('overflow', '');
+
+          proceedsearch();
+        }
+      });
+    }
+
+    // handle and trigger popup window;
+    $('.popup-trigger').click(function(e) {
+      e.stopPropagation();
+      if (isfetched === false) {
+        searchFunc(path, 'local-search-input', 'local-search-result');
+      } else {
+        proceedsearch();
+      };
+    });
+
+    $('.popup-btn-close').click(onPopupClose);
+    $('.popup').click(function(e){
+      e.stopPropagation();
+    });
+    $(document).on('keyup', function (event) {
+      var shouldDismissSearchPopup = event.which === 27 &&
+        $('.search-popup').is(':visible');
+      if (shouldDismissSearchPopup) {
+        onPopupClose();
+      }
+    });
+  </script>
+
+
+
+
+
+  
+
+  
+  <script src="https://cdn1.lncld.net/static/js/av-core-mini-0.6.4.js"></script>
+  <script>AV.initialize("2xoRk8O4oK5X8x5yQpLdeNMV-gzGzoHsz", "arry1O4lSfV4qMmPKqNNvpMz");</script>
+  <script>
+    function showTime(Counter) {
+      var query = new AV.Query(Counter);
+      var entries = [];
+      var $visitors = $(".leancloud_visitors");
+
+      $visitors.each(function () {
+        entries.push( $(this).attr("id").trim() );
+      });
+
+      query.containedIn('url', entries);
+      query.find()
+        .done(function (results) {
+          var COUNT_CONTAINER_REF = '.leancloud-visitors-count';
+
+          if (results.length === 0) {
+            $visitors.find(COUNT_CONTAINER_REF).text(0);
+            return;
+          }
+
+          for (var i = 0; i < results.length; i++) {
+            var item = results[i];
+            var url = item.get('url');
+            var time = item.get('time');
+            var element = document.getElementById(url);
+
+            $(element).find(COUNT_CONTAINER_REF).text(time);
+          }
+          for(var i = 0; i < entries.length; i++) {
+            var url = entries[i];
+            var element = document.getElementById(url);
+            var countSpan = $(element).find(COUNT_CONTAINER_REF);
+            if( countSpan.text() == '') {
+              countSpan.text(0);
+            }
+          }
+        })
+        .fail(function (object, error) {
+          console.log("Error: " + error.code + " " + error.message);
+        });
+    }
+
+    function addCount(Counter) {
+      var $visitors = $(".leancloud_visitors");
+      var url = $visitors.attr('id').trim();
+      var title = $visitors.attr('data-flag-title').trim();
+      var query = new AV.Query(Counter);
+
+      query.equalTo("url", url);
+      query.find({
+        success: function(results) {
+          if (results.length > 0) {
+            var counter = results[0];
+            counter.fetchWhenSave(true);
+            counter.increment("time");
+            counter.save(null, {
+              success: function(counter) {
+                var $element = $(document.getElementById(url));
+                $element.find('.leancloud-visitors-count').text(counter.get('time'));
+              },
+              error: function(counter, error) {
+                console.log('Failed to save Visitor num, with error message: ' + error.message);
+              }
+            });
+          } else {
+            var newcounter = new Counter();
+            /* Set ACL */
+            var acl = new AV.ACL();
+            acl.setPublicReadAccess(true);
+            acl.setPublicWriteAccess(true);
+            newcounter.setACL(acl);
+            /* End Set ACL */
+            newcounter.set("title", title);
+            newcounter.set("url", url);
+            newcounter.set("time", 1);
+            newcounter.save(null, {
+              success: function(newcounter) {
+                var $element = $(document.getElementById(url));
+                $element.find('.leancloud-visitors-count').text(newcounter.get('time'));
+              },
+              error: function(newcounter, error) {
+                console.log('Failed to create');
+              }
+            });
+          }
+        },
+        error: function(error) {
+          console.log('Error:' + error.code + " " + error.message);
+        }
+      });
+    }
+
+    $(function() {
+      var Counter = AV.Object.extend("Counter");
+      if ($('.leancloud_visitors').length == 1) {
+        addCount(Counter);
+      } else if ($('.post-title-link').length > 1) {
+        showTime(Counter);
+      }
+    });
+  </script>
+
+
+
+  
+
+  
+
+  
+  
+
+  
+
+  
+
+  
+
+  
+  <!-- ҳ����С���� -->
+<script type="text/javascript" src="/js/src/love.js"></script>
+<script async src="//dn-lbstatics.qbox.me/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+<script src="/live2dw/lib/L2Dwidget.min.js?0c58a1486de42ac6cc1c59c7d98ae887"></script><script>L2Dwidget.init({"pluginRootPath":"live2dw/","pluginJsPath":"lib/","pluginModelPath":"assets/","model":{"jsonPath":"live2d-widget-model-wanko"},"display":{"position":"right","width":150,"height":300},"mobile":{"show":true},"log":false,"tagMode":false});</script></body>
+</html>
