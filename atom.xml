@@ -6,7 +6,7 @@
   <link href="https://ershengaaa.cn/atom.xml" rel="self"/>
   
   <link href="https://ershengaaa.cn/"/>
-  <updated>2024-02-06T06:40:51.617Z</updated>
+  <updated>2024-02-08T12:38:27.034Z</updated>
   <id>https://ershengaaa.cn/</id>
   
   <author>
@@ -15,6 +15,35 @@
   </author>
   
   <generator uri="https://hexo.io/">Hexo</generator>
+  
+  <entry>
+    <title>matery博客搭建</title>
+    <link href="https://ershengaaa.cn/2024/02/06/matery-bo-ke-da-jian/"/>
+    <id>https://ershengaaa.cn/2024/02/06/matery-bo-ke-da-jian/</id>
+    <published>2024-02-06T07:42:05.000Z</published>
+    <updated>2024-02-08T12:38:27.034Z</updated>
+    
+    
+      
+      
+        
+        
+    <summary type="html">&lt;link rel=&quot;stylesheet&quot; class=&quot;aplayer-secondary-style-marker&quot; href=&quot;&#92;assets&#92;css&#92;APlayer.min.css&quot;&gt;&lt;script src=&quot;&#92;assets&#92;js&#92;APlayer.min.js&quot;</summary>
+        
+      
+    
+    
+    
+    <category term="blog" scheme="https://ershengaaa.cn/categories/blog/"/>
+    
+    
+    <category term="blog" scheme="https://ershengaaa.cn/tags/blog/"/>
+    
+    <category term="hexo" scheme="https://ershengaaa.cn/tags/hexo/"/>
+    
+    <category term="matery" scheme="https://ershengaaa.cn/tags/matery/"/>
+    
+  </entry>
   
   <entry>
     <title>Markdown</title>

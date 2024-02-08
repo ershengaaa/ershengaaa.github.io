@@ -1,3 +1,4 @@
+https://ershengaaa.cn/2024/02/06/matery-bo-ke-da-jian/
 https://ershengaaa.cn/2024/01/21/markdown/
 https://ershengaaa.cn/baidu_verify_codeva-qeISSS9nsQ.html
 https://ershengaaa.cn/books/index.html
@@ -13,4 +14,8 @@ https://ershengaaa.cn/tags/index.html
 https://ershengaaa.cn/categories/index.html
 https://ershengaaa.cn/
 https://ershengaaa.cn/tags/Markdown/
+https://ershengaaa.cn/tags/blog/
+https://ershengaaa.cn/tags/hexo/
+https://ershengaaa.cn/tags/matery/
 https://ershengaaa.cn/categories/Markdown/
+https://ershengaaa.cn/categories/blog/
